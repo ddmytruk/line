@@ -19,14 +19,14 @@ jobs:
     name: Coding style, static analysis, tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
           extensions: pdo_mysql
           coverage: none
       - run: composer validate --strict
-      - uses: ramsey/composer-install@v3
+      - uses: ramsey/composer-install@v4
       - run: composer cs
       - run: composer stan
       - run: composer test
@@ -37,12 +37,12 @@ jobs:
     name: Mutation testing of the core
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
           coverage: pcov
-      - uses: ramsey/composer-install@v3
+      - uses: ramsey/composer-install@v4
       - run: composer mutation
 
   integration:
@@ -68,7 +68,7 @@ jobs:
       DB_USERNAME: earning_line
       DB_PASSWORD: earning_line
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
@@ -76,12 +76,12 @@ jobs:
           coverage: none
       - name: Prepare MySQL as Docker Compose does
         run: docker exec -i ${{ job.services.mysql.id }} mysql -uroot -proot < docker/mysql/init.sql
-      - uses: ramsey/composer-install@v3
+      - uses: ramsey/composer-install@v4
       - run: composer test:integration
 
   image:
     name: Development image builds
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - run: docker build -f docker/Dockerfile .

@@ -5,6 +5,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Changed
+- CI uses `actions/checkout@v6` and `ramsey/composer-install@v4`, which run on Node.js 24; GitHub no longer supports Node.js 20 for actions.
+
 ## [1.2.0] - 2026-11-12
 
 ### Added
