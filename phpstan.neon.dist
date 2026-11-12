@@ -1,0 +1,18 @@
+includes:
+    - vendor/phpstan/phpstan-phpunit/extension.neon
+    - vendor/phpstan/phpstan-phpunit/rules.neon
+    - vendor/phpstan/phpstan-strict-rules/rules.neon
+    - vendor/phpat/phpat/extension.neon
+
+parameters:
+    level: max
+    paths:
+        - src
+        - tests
+
+services:
+    # Architecture rules (phpat) run as part of static analysis.
+    -
+        class: Tests\Architecture\LayerRules
+        tags:
+            - phpat.test

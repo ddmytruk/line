@@ -7,3 +7,4 @@ To add an ADR: take the next number after the last row, copy the [template](proj
 | ADR | Decision | Module | Status |
 |---|---|---|---|
 | 0001 | [Layers, modules and the direction of dependencies](project/adr/0001-layers-and-modules.md) | project | accepted |
+| 0002 | [Testing strategy](project/adr/0002-testing-strategy.md) | project | accepted |

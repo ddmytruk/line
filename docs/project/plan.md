@@ -7,7 +7,7 @@ Each step below is one commit: code, tests, the ADR of a decision taken in that 
 ## 1.0.0 Domain model
 
 - [x] **0. Plan and rules.** This plan, git and AI workflows, ADR template, domain rules and open questions, architecture overview. ADR 0001.
-- [ ] **1. Skeleton.** Composer, PHPUnit, PHPStan at max level with architecture rules, coding style, Docker, Makefile, CI. ADR 0002.
+- [x] **1. Skeleton.** Composer, PHPUnit, PHPStan at max level with architecture rules, coding style, Docker, Makefile, CI. ADR 0002.
 - [ ] **2. Value objects.** `Money` in integer minor units with `Currency`, `AdjustmentComment`, identifiers. ADR 0003, ADR 0004.
 - [ ] **3. Aggregate.** `EarningLine` that changes state only through events; freeze and ignored recalculations. ADR 0005, ADR 0006.
 - [ ] **4. Executable specification.** The reference scenario step by step, and property-based tests of the invariants.

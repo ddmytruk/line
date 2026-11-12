@@ -1,0 +1,46 @@
+{
+    "name": "ddmytruk/line",
+    "description": "Payroll earning line with an append-only history of manual adjustments",
+    "type": "project",
+    "license": "MIT",
+    "require": {
+        "php": "^8.4.1",
+        "ext-mbstring": "*"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.64",
+        "phpat/phpat": "^0.12",
+        "phpstan/phpstan": "^2.1",
+        "phpstan/phpstan-phpunit": "^2.0",
+        "phpstan/phpstan-strict-rules": "^2.0",
+        "phpunit/phpunit": "^12.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Common\\": "src/Common/",
+            "Payroll\\": "src/Payroll/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "platform": {
+            "php": "8.4.1"
+        }
+    },
+    "scripts": {
+        "cs": "php-cs-fixer check --diff",
+        "cs:fix": "php-cs-fixer fix",
+        "stan": "phpstan analyse --no-progress --memory-limit=512M",
+        "test": "phpunit",
+        "qa": [
+            "@cs",
+            "@stan",
+            "@test"
+        ]
+    }
+}

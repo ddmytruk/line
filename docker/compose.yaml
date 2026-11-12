@@ -1,0 +1,13 @@
+# The application is a command-line tool: the service does not run permanently,
+# commands are started with `docker compose run`.
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    # Run as the host user, so files written into the mounted project (vendor/, caches, fixed code) stay editable.
+    user: "${UID:-1000}:${GID:-1000}"
+    environment:
+      COMPOSER_HOME: /tmp/composer
+    volumes:
+      - ..:/app
