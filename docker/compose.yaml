@@ -1,5 +1,5 @@
-# The application is a command-line tool: the service does not run permanently,
-# commands are started with `docker compose run`.
+# The application is used from the command line: the app service does not run permanently,
+# commands are started with `docker compose run`. MySQL is started only by the commands that need it.
 services:
   app:
     build:
@@ -12,5 +12,30 @@ services:
       # Replay a failed property-based run: PROPERTY_SEED=<seed> PROPERTY_RUNS=1 make test
       PROPERTY_SEED: ${PROPERTY_SEED:-}
       PROPERTY_RUNS: ${PROPERTY_RUNS:-}
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: earning_line
+      DB_USERNAME: earning_line
+      DB_PASSWORD: earning_line
     volumes:
       - ..:/app
+
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: earning_line
+      MYSQL_USER: earning_line
+      MYSQL_PASSWORD: earning_line
+    volumes:
+      - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+
+volumes:
+  mysql:

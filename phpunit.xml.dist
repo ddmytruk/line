@@ -11,10 +11,23 @@
          failOnNotice="true"
          beStrictAboutOutputDuringTests="true">
     <testsuites>
-        <testsuite name="all">
+        <testsuite name="unit">
             <directory>tests</directory>
+            <exclude>tests/*/Integration</exclude>
+        </testsuite>
+        <!-- Needs MySQL: make test-integration -->
+        <testsuite name="integration">
+            <directory>tests/*/Integration</directory>
         </testsuite>
     </testsuites>
+    <php>
+        <!-- Tests never use the database of the local application, and only MySQL.
+             Both are needed: Laravel reads $_SERVER first (Docker fills it), getenv() reads the env. -->
+        <env name="DB_CONNECTION" value="mysql" force="true"/>
+        <server name="DB_CONNECTION" value="mysql" force="true"/>
+        <env name="DB_DATABASE" value="earning_line_test" force="true"/>
+        <server name="DB_DATABASE" value="earning_line_test" force="true"/>
+    </php>
     <source>
         <include>
             <directory>src</directory>

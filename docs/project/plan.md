@@ -4,6 +4,7 @@ The project is delivered in releases. Each release is a tag, and each step of a 
 
 - **1.0.0 Domain model:** the business rules as an event-recording aggregate, their tests and a command-line demo, in plain PHP without a framework or storage.
 - **1.1.0 Event sourcing and CQRS:** lines are stored as their events, changed through commands and read through a separate history model. Still plain PHP: storage sits behind ports with in-memory adapters, and the domain does not change.
+- **1.2.0 Laravel and a database:** the same core runs as a Laravel application with MySQL; Laravel and the database are adapters of the existing ports, and `src/` does not change.
 
 Each step below is one commit: code, tests, the ADR of a decision taken in that step, a `CHANGELOG.md` entry and the matching update of the architecture documents (the [overview](../architecture.md) and the module's `architecture.md`). How commits and reviews work is described in the [git workflow](git-workflow.md).
 
@@ -32,3 +33,10 @@ Each step below is one commit: code, tests, the ADR of a decision taken in that 
 
 - **Business decisions:** the same open questions as in 1.0.0, plus those that commands add, are listed in the [open questions](../payroll/domain.md#open-questions).
 - **Technical topics:** a storage format for events, a database, a framework, asynchronous projectors, snapshots and event versioning. Stores of this release keep their data in memory only.
+
+## 1.2.0 Laravel and a database
+
+- [x] **10. Laravel application and MySQL.** Laravel inside `app/`, MySQL in Docker Compose and CI, a test suite against the database. ADR 0012.
+- [ ] **11. Stores in the database.** Event store, processed commands and transaction in MySQL; stored events cannot be changed or deleted; the same contract tests as the in-memory stores.
+- [ ] **12. Payroll on Laravel.** Payroll events stored under stable names, the line history in a table, artisan commands and an HTTP API.
+- [ ] **13. Mutation testing and release.** Mutation testing of the core in CI, README for the release. Tag `v1.2.0`.

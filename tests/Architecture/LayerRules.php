@@ -9,7 +9,7 @@ use PHPat\Test\Builder\Rule;
 use PHPat\Test\PHPat;
 
 /**
- * Dependency rules of ADR 0001 and the folder rule for exceptions, checked by phpat during static analysis.
+ * Dependency rules of ADR 0001 and ADR 0012 and the folder rule for exceptions, checked by phpat during static analysis.
  * The class name does not end with "Test" because it is not a PHPUnit test.
  */
 final class LayerRules
@@ -57,6 +57,15 @@ final class LayerRules
             ->canOnlyDependOn()
             ->classes(Selector::inNamespace('Common'), Selector::inNamespace('Payroll'), Selector::isStandardClass())
             ->because('the core works through ports; frameworks and libraries are plugged in from outside');
+    }
+
+    public function testInMemoryAdaptersAndTheDemoDoNotDependOnLaravel(): Rule
+    {
+        return PHPat::rule()
+            ->classes(Selector::inNamespace('/^App\\\\Modules\\\\[A-Za-z]+\\\\(InMemory|Cli)$/', true))
+            ->shouldNotDependOn()
+            ->classes(Selector::inNamespace('Illuminate'))
+            ->because('the in-memory adapters and the demo show that the core runs without a framework');
     }
 
     public function testSharedCoreDoesNotKnowBusinessModules(): Rule

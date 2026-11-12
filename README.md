@@ -13,7 +13,8 @@ Only Docker and `make` are needed.
 ```bash
 make install   # build the image and install dependencies
 make demo      # play the reference scenario and print the history
-make qa        # coding style, static analysis with architecture rules, all tests
+make qa        # coding style, static analysis with architecture rules, tests that need no database
+make test-integration  # tests of the Laravel adapters against MySQL
 ```
 
 `make demo` sends the reference scenario as commands, then prints every step, the history a specialist reads and the full log:

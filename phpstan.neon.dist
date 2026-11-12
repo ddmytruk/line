@@ -9,8 +9,13 @@ parameters:
     paths:
         - src
         - app
+        - app/artisan
         - bin/earning-line
         - tests
+    excludePaths:
+        # Files that Laravel writes at run time.
+        - app/bootstrap/cache
+        - app/storage
 
 services:
     # Architecture rules (phpat) run as part of static analysis.

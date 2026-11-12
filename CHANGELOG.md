@@ -5,6 +5,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Added
+- Laravel application inside `app/` with MySQL in Docker Compose and CI; `make artisan` and `make test-integration` for tests against the database (ADR 0012).
+- Architecture rule: the in-memory adapters and the command-line demo do not depend on Laravel.
+
 ## [1.1.0] - 2026-11-12
 
 ### Added

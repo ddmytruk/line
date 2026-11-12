@@ -16,6 +16,7 @@ A review is added in the commit of the step it reviews, together with its row he
 | 7 | [Commands and the command bus](payroll/reviews/07-commands-and-bus.md) | payroll | 12 | 12 | 0 | 0 |
 | 8 | [History read model](payroll/reviews/08-line-history.md) | payroll | 15 | 14 | 0 | 1 |
 | 9 | [Command-line demo through the bus and release 1.1.0](payroll/reviews/09-command-line-demo-through-the-bus.md) | payroll | 6 | 6 | 0 | 0 |
+| 10 | [Laravel and MySQL](project/reviews/10-laravel-and-mysql.md) | project | 10 | 9 | 1 | 0 |
 
 ## What the AI got wrong and how it was caught
 
@@ -33,3 +34,4 @@ What the reviews caught that the implementing agent got wrong: one case per step
 | 7 | `CommandBusTest` | A race test in which the other run recorded the same content only | A bus that swallowed a lost race reported "done" to a sender whose command was never carried out, and every test stayed green | [Review of step 7](payroll/reviews/07-commands-and-bus.md): a mutation of the bus survived | A racing run with other content must end in `CommandIdReused` |
 | 8 | `InMemoryEventStore::restore` | Rollback of the list of all events was never checked | Events dropped by a failed command could come back in a rebuild as facts that never happened | [Review of step 8](payroll/reviews/08-line-history.md): a mutation that restored only the streams survived | The transaction test checks `all()` after a failure |
 | 9 | `DemoCommand` | The demo compared the history before and after a rebuild in the same store | A rebuild that did nothing would still be printed as "equal", so the demo claimed something it never showed | [Review of step 9](payroll/reviews/09-command-line-demo-through-the-bus.md) | The demo drops the history before rebuilding it |
+| 10 | `docker/compose.yaml` | The application service waited for a healthy MySQL | Every check, including the Definition of Done gate, started a database it does not use and failed when MySQL could not start | [Review of step 10](project/reviews/10-laravel-and-mysql.md) | MySQL starts only for the integration tests and artisan |

@@ -17,7 +17,7 @@ flowchart TB
             cd["Domain<br/>aggregate root"]
         end
     end
-    subgraph app["app/Modules (adapters)"]
+    subgraph app["app/ (Laravel application, ADR 0012) and app/Modules (adapters)"]
         cli["Payroll/Cli<br/>command-line demo"]
         pmod["Payroll/InMemory<br/>module wiring, line histories"]
         mem["Common/InMemory<br/>in-memory stores, transaction"]
@@ -43,6 +43,7 @@ Arrows point in the direction of dependencies. The rules of [ADR 0001](project/a
 | `Common` never depends on `Payroll` | shared building blocks can serve any module |
 | `src/` never depends on a framework or library | storage and framework are replaceable tools |
 | Adapters in `app/` depend on the core, never the other way round | the core does not know how it is used |
+| In-memory adapters and the command-line demo do not depend on Laravel ([ADR 0012](project/adr/0012-laravel-inside-app.md)) | the core keeps running without a framework |
 
 Each module describes its own architecture next to its other documents: [Common](common/architecture.md) (building blocks, saving a change, carrying out a command, reading, guarantees) and [Payroll](payroll/architecture.md) (context, domain model, storage, commands, history for reading, guarantees).
 
@@ -65,8 +66,9 @@ A folder is named after what its classes do, not after the pattern they follow, 
 |---|---|---|
 | Coding style (PER-CS 2.0, strict types) | PHP CS Fixer | `make cs` |
 | Types at the maximum level, strict rules | PHPStan | `make stan` |
-| Dependency rules of ADR 0001 | phpat, inside PHPStan | `make stan` |
+| Dependency rules of ADR 0001 and ADR 0012 | phpat, inside PHPStan | `make stan` |
 | Every exception in `src/` lives in the `Exception/` folder of its layer | phpat, inside PHPStan | `make stan` |
-| Tests, in random order | PHPUnit | `make test` |
+| Tests that need no database, in random order | PHPUnit | `make test` |
+| Tests of the Laravel adapters against MySQL | PHPUnit, suite `integration` | `make test-integration` |
 
-`make qa` runs all of them in the Docker image. CI runs the same checks on every push and pull request with the same PHP version, and also builds the image. The testing approach is described in [ADR 0002](project/adr/0002-testing-strategy.md).
+`make qa` runs all of them except the tests against MySQL in the Docker image; `make test-integration` starts MySQL in Docker Compose and runs those. CI runs the same checks on every push and pull request with the same PHP version, the tests against MySQL in a separate job, and also builds the image. The testing approach is described in [ADR 0002](project/adr/0002-testing-strategy.md).

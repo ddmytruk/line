@@ -32,6 +32,38 @@ jobs:
       - name: Command-line demo
         run: php bin/earning-line demo
 
+  integration:
+    name: Laravel adapters against MySQL
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: earning_line_test
+          MYSQL_USER: earning_line
+          MYSQL_PASSWORD: earning_line
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=2s --health-timeout=5s --health-retries=30
+    env:
+      DB_CONNECTION: mysql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_DATABASE: earning_line_test
+      DB_USERNAME: earning_line
+      DB_PASSWORD: earning_line
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_mysql
+          coverage: none
+      - uses: ramsey/composer-install@v3
+      - run: composer test:integration
+
   image:
     name: Development image builds
     runs-on: ubuntu-latest
