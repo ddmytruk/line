@@ -14,3 +14,4 @@ To add an ADR: take the next number after the last row, copy the [template](proj
 | 0006 | [Freezing a line and recording ignored recalculations](payroll/adr/0006-freeze-and-ignored-recalculations.md) | payroll | accepted |
 | 0007 | [A small event-sourcing core of our own](common/adr/0007-own-event-sourcing-core.md) | common | accepted |
 | 0008 | [Optimistic concurrency on streams](common/adr/0008-optimistic-concurrency.md) | common | accepted |
+| 0009 | [One command bus with a transaction and idempotency](common/adr/0009-one-command-bus.md) | common | accepted |

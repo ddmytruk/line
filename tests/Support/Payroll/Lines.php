@@ -16,6 +16,11 @@ final class Lines
 {
     public const string LINE_ID = '019a7b2c-3d4e-7f80-9a1b-2c3d4e5f6a7b';
 
+    public static function id(): EarningLineId
+    {
+        return new EarningLineId(self::LINE_ID);
+    }
+
     public static function usd(string $amount): Money
     {
         return Money::fromDecimal($amount, Currency::USD);

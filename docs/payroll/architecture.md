@@ -1,6 +1,6 @@
 # Payroll architecture
 
-How the Payroll module is built, from the outside in: who uses an earning line, its domain model, how lines are stored and what it guarantees. Modules, layers and quality checks of the whole repository are in the [architecture overview](../architecture.md).
+How the Payroll module is built, from the outside in: who uses an earning line, its domain model, how lines are stored and changed, and what it guarantees. Modules, layers and quality checks of the whole repository are in the [architecture overview](../architecture.md).
 
 ## 1. Context
 
@@ -89,7 +89,20 @@ sequenceDiagram
 
 A stored history that breaks the rules of the domain, such as a recalculation before the first calculation or an amount in another currency, cannot be input from a user. `get` and `find` report it as `CorruptedEarningLineEvents`.
 
-## 4. Guarantees
+## 4. Commands
+
+Senders change lines with commands, carried out by the [command bus](../common/architecture.md#3-carrying-out-a-command). Commands carry values as the sender sent them: amounts as decimal strings and currencies as codes; each command turns them into money itself. The commands, their handlers and the repository they use are in `Application/Command/`.
+
+| Command | Sender | Handler does | Refused when |
+|---|---|---|---|
+| `RecordCalculatedValue` | payroll calculation | creates the line with the first value; later values go to `recordSystemValue` | unknown currency, inexact amount, another currency than the line's |
+| `AddManualAdjustment` | specialist | adds the adjustment with the author and the time of the clock | the line does not exist (`EarningLineNotFound`), the line is not at the version the specialist saw (`ConcurrencyConflict`), any rule of the domain |
+
+- `RecordCalculatedValue` is safe to retry: the calculation sends a whole value that does not depend on what it saw of the line. If two first values arrive at once, one creates the line and the other is run again as a recalculation.
+- `AddManualAdjustment` carries the version of the line the specialist looked at. A change in between, even a recalculation that the line ignores, refuses the adjustment, so a specialist never corrects a line they have not seen (open question Q16).
+- A rejected command records nothing and is not marked as carried out, so the sender can correct it and send it again under the same id.
+
+## 5. Guarantees
 
 What can go wrong, what prevents it and which test proves it. Rows are added in the step that introduces the guarantee.
 
@@ -106,10 +119,14 @@ What can go wrong, what prevents it and which test proves it. Rows are added in 
 | An adjustment is saved without a real explanation | `AdjustmentComment` rejects blank and whitespace-only comments | `AdjustmentCommentTest` |
 | Two specialists adjust the same line at once and both adjustments are saved | the second save is based on an outdated version and is refused | `EarningLinesTest::testRefusesAChangeMadeOnALineThatChangedAfterItWasLoaded` |
 | A line is created twice and the first calculation is lost | creating a line is an append at version 0 | `EarningLinesTest::testRefusesToCreateALineThatAlreadyExists` |
+| Two first values arrive at once and one of them is lost | creating a line twice is a conflict; the calculation's command is run again as a recalculation | `RecordCalculatedValueTest::testTwoFirstValuesAtOnceBecomeACalculationAndARecalculation` |
+| Two specialists who saw the same version both adjust the line | the adjustment carries the version the specialist saw | `AddManualAdjustmentTest::testTwoSpecialistsWhoSawTheSameVersionCannotBothAdjust` |
+| A specialist's adjustment is sent twice after a timeout and added twice | the command id is carried out once | `AddManualAdjustmentTest::testTheSameAdjustmentSentTwiceIsAddedOnce` |
+| A refused adjustment leaves a trace | rules are checked before anything is saved, in the bus transaction | `AddManualAdjustmentTest::testRefusesAnInvalidAdjustmentWithoutATrace` |
 | A failed save is repeated with the same line object and reports success without saving | the repository refuses to save a line whose save failed | `EarningLinesTest::testALineWhoseSaveFailedCannotBeSavedAgain` |
 | A corrupted stored history is shown as a line with different money | the repository reports it as corrupted | `EarningLinesTest::testReportsAStoredHistoryThatBreaksTheRulesAsCorrupted` |
 
-## 5. Rules for the code
+## 6. Rules for the code
 
 Rules of this module on top of the [AI workflow](../project/ai-workflow.md#rules-for-the-code):
 

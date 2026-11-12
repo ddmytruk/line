@@ -9,7 +9,7 @@ use Common\Application\Exception\ConcurrencyConflict;
 use Common\Domain\DomainEvent;
 
 /** Event store in the memory of the running process. Runs the same contract tests as any other event store. */
-final class InMemoryEventStore implements EventStore
+final class InMemoryEventStore implements EventStore, InMemoryState
 {
     /** @var array<string, list<DomainEvent>> */
     private array $streams = [];
@@ -38,5 +38,18 @@ final class InMemoryEventStore implements EventStore
         }
 
         $this->streams[$streamId] = [...$this->streams[$streamId] ?? [], ...$events];
+    }
+
+    /** @return array<string, list<DomainEvent>> */
+    public function snapshot(): array
+    {
+        return $this->streams;
+    }
+
+    public function restore(mixed $snapshot): void
+    {
+        \assert(\is_array($snapshot));
+        /** @var array<string, list<DomainEvent>> $snapshot */
+        $this->streams = $snapshot;
     }
 }

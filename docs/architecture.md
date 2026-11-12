@@ -9,17 +9,17 @@ flowchart TB
     subgraph src["src/ (plain PHP, no framework)"]
         direction TB
         subgraph payroll["Payroll"]
-            pa["Application<br/>repository of earning lines"]
+            pa["Application<br/>commands, handlers,<br/>repository of earning lines"]
             pd["Domain<br/>rules of an earning line"]
         end
         subgraph common["Common"]
-            ca["Application<br/>event store port"]
+            ca["Application<br/>command bus, ports"]
             cd["Domain<br/>aggregate root"]
         end
     end
     subgraph app["app/Modules (adapters)"]
         cli["Payroll/Cli<br/>command-line demo"]
-        mem["Common/InMemory<br/>in-memory event store"]
+        mem["Common/InMemory<br/>in-memory stores, transaction"]
     end
     cli --> pd
     mem --> ca
@@ -39,7 +39,7 @@ Arrows point in the direction of dependencies. The rules of [ADR 0001](project/a
 | `src/` never depends on a framework or library | storage and framework are replaceable tools |
 | Adapters in `app/` depend on the core, never the other way round | the core does not know how it is used |
 
-Each module describes its own architecture next to its other documents: [Common](common/architecture.md) (building blocks, saving a change, guarantees) and [Payroll](payroll/architecture.md) (context, domain model, storage, guarantees).
+Each module describes its own architecture next to its other documents: [Common](common/architecture.md) (building blocks, saving a change, carrying out a command, guarantees) and [Payroll](payroll/architecture.md) (context, domain model, storage, commands, guarantees).
 
 ### Folders inside a layer
 
