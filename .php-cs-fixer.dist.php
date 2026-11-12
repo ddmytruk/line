@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 // Coding style: PER Coding Style 2.0 (the successor of PSR-12) plus mandatory strict types.
 $finder = new PhpCsFixer\Finder()
-    ->in([__DIR__ . '/src', __DIR__ . '/tests'])
-    ->append([__FILE__]);
+    ->in([__DIR__ . '/src', __DIR__ . '/app', __DIR__ . '/tests'])
+    ->append([__FILE__, __DIR__ . '/bin/earning-line']);
 
 return new PhpCsFixer\Config()
     ->setRiskyAllowed(true)

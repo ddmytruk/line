@@ -2,7 +2,7 @@
     "name": "ddmytruk/line",
     "description": "Payroll earning line with an append-only history of manual adjustments",
     "type": "project",
-    "license": "MIT",
+    "license": "proprietary",
     "require": {
         "php": "^8.4.1",
         "ext-mbstring": "*"
@@ -17,6 +17,7 @@
     },
     "autoload": {
         "psr-4": {
+            "App\\": "app/",
             "Common\\": "src/Common/",
             "Payroll\\": "src/Payroll/"
         }

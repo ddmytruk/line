@@ -8,6 +8,8 @@ parameters:
     level: max
     paths:
         - src
+        - app
+        - bin/earning-line
         - tests
 
 services:

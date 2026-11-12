@@ -1,0 +1,28 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+use App\Modules\Payroll\Cli\DemoCommand;
+
+require __DIR__ . '/../vendor/autoload.php';
+
+$command = $argv[1] ?? 'help';
+
+if ($command === 'demo') {
+    echo new DemoCommand(new DateTimeImmutable('now', new DateTimeZone('UTC')))->run();
+    exit(0);
+}
+
+if ($command !== 'help') {
+    fwrite(STDERR, sprintf("Unknown command \"%s\".\n\n", $command));
+}
+
+fwrite($command === 'help' ? STDOUT : STDERR, <<<'USAGE'
+    Usage: bin/earning-line <command>
+
+    Commands:
+      demo   Play the reference scenario and print the history of the line
+
+    USAGE);
+exit($command === 'help' ? 0 : 1);

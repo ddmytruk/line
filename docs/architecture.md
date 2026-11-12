@@ -15,6 +15,10 @@ flowchart TB
             cd["Domain<br/>aggregate root"]
         end
     end
+    subgraph app["app/Modules (adapters)"]
+        cli["Payroll/Cli<br/>command-line demo"]
+    end
+    cli --> pd
     pd --> cd
 ```
 
@@ -24,7 +28,8 @@ Arrows point in the direction of dependencies. The rules of [ADR 0001](project/a
 |---|---|
 | Domain depends on nothing outside domain layers | business rules are testable on their own |
 | `Common` never depends on `Payroll` | shared building blocks can serve any module |
-| `src/` never depends on a framework | storage and framework are replaceable tools |
+| `src/` never depends on a framework or library | storage and framework are replaceable tools |
+| Adapters in `app/` depend on the core, never the other way round | the core does not know how it is used |
 
 Each module describes its own architecture next to its other documents: [Payroll](payroll/architecture.md) (context, domain model, guarantees).
 

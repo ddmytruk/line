@@ -5,6 +5,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-11-12
+
 ### Added
 - Project plan, git workflow, AI workflow and the ADR template.
 - Business rules, line lifecycle and open questions of the Payroll module.
@@ -14,3 +16,4 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - `AggregateRoot` whose state changes only through events (ADR 0005).
 - `EarningLine` aggregate: calculation, recalculation, manual adjustments, freezing and recorded ignored recalculations (ADR 0006).
 - The reference scenario as an executable specification, and property-based tests of the line's invariants on random, reproducible sequences of actions.
+- Command-line demo `bin/earning-line demo` that plays the reference scenario and prints the history and the full log.

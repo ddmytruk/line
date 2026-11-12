@@ -5,7 +5,7 @@ export GID := $(shell id -g)
 COMPOSE := docker compose -f docker/compose.yaml
 RUN     := $(COMPOSE) run --rm app
 
-.PHONY: help build install qa test stan cs cs-fix shell
+.PHONY: help build install qa test stan cs cs-fix demo shell
 
 help:              ## List the commands
 	@grep -E '^[a-z-]+:.*##' $(MAKEFILE_LIST) | sed 's/:.*##/ -/'
@@ -30,6 +30,9 @@ cs:                ## Check coding style
 
 cs-fix:            ## Fix coding style
 	$(RUN) composer cs:fix
+
+demo:              ## Play the reference scenario and print the history
+	$(RUN) php bin/earning-line demo
 
 shell:             ## Shell inside the container
 	$(RUN) bash
