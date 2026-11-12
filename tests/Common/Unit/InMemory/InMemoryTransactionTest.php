@@ -52,6 +52,7 @@ final class InMemoryTransactionTest extends TestCase
         self::assertSame($failure, $caught, 'The failure must reach the caller.');
         self::assertCount(1, $store->load('a'));
         self::assertSame([], $store->load('b'));
+        self::assertEquals([new SomethingHappened('a', 'before')], [...$store->all()], 'dropped events must not come back in a rebuild');
         self::assertNull($processed->fingerprintOf('c-1'));
     }
 }

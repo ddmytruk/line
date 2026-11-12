@@ -102,6 +102,25 @@ abstract class EventStoreContract extends TestCase
         self::assertCount(2, $store->load('b'));
     }
 
+    public function testListsTheEventsOfAllStreamsInTheOrderTheyWereAppended(): void
+    {
+        $store = $this->createStore();
+        $store->append('a', 0, [self::event('a', 'first')]);
+        $store->append('b', 0, [self::event('b', 'second'), self::event('b', 'third')]);
+
+        try {
+            $store->append('a', 0, [self::event('a', 'refused')]);
+        } catch (ConcurrencyConflict) {
+        }
+
+        $store->append('a', 1, [self::event('a', 'fourth')]);
+
+        self::assertEquals(
+            [self::event('a', 'first'), self::event('b', 'second'), self::event('b', 'third'), self::event('a', 'fourth')],
+            [...$store->all()],
+        );
+    }
+
     public function testAppendingNothingChangesNothingWhateverTheVersion(): void
     {
         $store = $this->createStore();

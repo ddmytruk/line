@@ -34,6 +34,11 @@ final class InterleavingEventStore implements EventStore, InMemoryState
         return $this->store->load($streamId);
     }
 
+    public function all(): iterable
+    {
+        return $this->store->all();
+    }
+
     public function append(string $streamId, int $expectedVersion, array $events): void
     {
         $write = array_shift($this->pending);

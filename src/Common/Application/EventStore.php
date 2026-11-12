@@ -18,6 +18,9 @@ interface EventStore
     /** @return list<DomainEvent> the stream in the order of appending; empty for a stream that does not exist */
     public function load(string $streamId): array;
 
+    /** @return iterable<DomainEvent> the events of all streams in the order they were appended, for rebuilding models for reading */
+    public function all(): iterable;
+
     /**
      * Appends all events or none.
      *

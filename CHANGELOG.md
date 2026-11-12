@@ -11,6 +11,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - One folder layout for every layer, described in the architecture overview; phpat checks that every exception lives in the `Exception/` folder of its layer.
 - `CommandBus`: runs each command in a transaction, at most once per command id, and runs a command that is safe to retry again after a concurrency conflict (ADR 0009). In-memory transaction and store of processed commands, with contract tests.
 - Payroll commands `RecordCalculatedValue` (creates or recalculates a line) and `AddManualAdjustment` (refused if the line changed since the specialist saw it), with their handlers; the reference scenario runs through the bus.
+- Projectors: every appended event is projected in the same transaction, and `ReadModelRebuild` builds the models for reading again from all events (ADR 0010). `EventStore::all()` lists the events of all streams in the order of appending.
+- Line history for reading: current value, every fact with the value after it, adjustments with author and comment, and drift of a frozen line (ADR 0011), read through the `GetEarningLineHistory` query. In-memory store of histories with contract tests.
 
 ## [1.0.0] - 2026-11-12
 

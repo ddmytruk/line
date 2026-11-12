@@ -14,9 +14,17 @@ final class InMemoryEventStore implements EventStore, InMemoryState
     /** @var array<string, list<DomainEvent>> */
     private array $streams = [];
 
+    /** @var list<DomainEvent> every event in the order of appending */
+    private array $all = [];
+
     public function load(string $streamId): array
     {
         return $this->streams[$streamId] ?? [];
+    }
+
+    public function all(): iterable
+    {
+        return $this->all;
     }
 
     public function append(string $streamId, int $expectedVersion, array $events): void
@@ -38,18 +46,19 @@ final class InMemoryEventStore implements EventStore, InMemoryState
         }
 
         $this->streams[$streamId] = [...$this->streams[$streamId] ?? [], ...$events];
+        $this->all = [...$this->all, ...$events];
     }
 
-    /** @return array<string, list<DomainEvent>> */
+    /** @return array{array<string, list<DomainEvent>>, list<DomainEvent>} */
     public function snapshot(): array
     {
-        return $this->streams;
+        return [$this->streams, $this->all];
     }
 
     public function restore(mixed $snapshot): void
     {
         \assert(\is_array($snapshot));
-        /** @var array<string, list<DomainEvent>> $snapshot */
-        $this->streams = $snapshot;
+        /** @var array{array<string, list<DomainEvent>>, list<DomainEvent>} $snapshot */
+        [$this->streams, $this->all] = $snapshot;
     }
 }
