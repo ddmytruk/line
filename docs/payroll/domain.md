@@ -73,6 +73,26 @@ The history shown to the specialist: frozen system value 1,050.00, adjustments �
 
 Each case lists the behaviour and the test that proves it. Cases are added in the step that implements them.
 
+### Money
+
+| Case | Example | Behaviour | Why | Test |
+|---|---|---|---|---|
+| Floating-point error | −0.10 + −0.20 | exactly −0.30 | amounts are integer cents parsed from strings | `MoneyTest::testAddsWithoutFloatingPointErrors` |
+| Fraction of a cent | `1.005` | rejected | rounding silently would record an amount nobody entered | `MoneyTest::testRejectsInexactAmounts` |
+| Out of range | an amount or a sum of 10^13 units of currency or more | rejected before anything is recorded | an integer overflow would flip the sign of the amount | `MoneyTest::testRejectsASumOutsideTheSupportedRange` |
+| Another currency | a USD line and a EUR amount | rejected with `CurrencyMismatch` | 100 USD + 5 EUR has no meaningful value without a rate | `MoneyTest::testRefusesToAddAnotherCurrency` |
+| Unsupported currency | `JPY` | not representable | it has no minor units, while amounts assume two decimal places (Q6) | the `Currency` enum has no such case |
+
+### Comment
+
+| Case | Example | Behaviour | Why | Test |
+|---|---|---|---|---|
+| Empty or only spaces | `""`, `"   "` | rejected | a mandatory comment must explain something | `AdjustmentCommentTest::testRejectsABlankComment` |
+| Invisible characters only | non-breaking or zero-width spaces, control characters, blank fillers | rejected | otherwise the rule is bypassed with a character that looks like nothing | same |
+| Control characters inside | a bell or null character in the text | rejected; tabs and line breaks are kept | they corrupt how the history is displayed | `AdjustmentCommentTest::testRejectsUnreadableText` |
+| Surrounding spaces | `"  Bonus  "` | stored as `"Bonus"` | the history keeps what was meant, not the padding | `AdjustmentCommentTest::testTrimsSurroundingWhitespace` |
+| Too long | 501 characters | rejected | an append-only history must not accept unbounded text (Q9) | `AdjustmentCommentTest::testRejectsATooLongComment` |
+
 ## Open questions
 
 Questions for the product owner. Each has the assumption the code makes today and what changes once it is answered. The design keeps every change additive: no answer requires rewriting the existing rules or history.
@@ -84,7 +104,7 @@ Questions for the product owner. Each has the assumption the code makes today an
 | Q3 | Must a compensating adjustment formally reference the adjustment it corrects? | no, the comment explains it | a new "compensating adjustment added" fact that carries the reference; existing facts unchanged |
 | Q4 | Is a zero adjustment (a note without an amount) allowed? | no | remove one check, or add a separate "note" action |
 | Q5 | Can the current value of a line become negative? | yes, for example when an overpayment is recovered | one extra invariant in the aggregate |
-| Q6 | Which currencies are paid, and can a line or a recalculation come in another currency? | one currency per line, set by the first calculation; amounts have two decimal places; anything in another currency is rejected | supporting a currency is a configuration change; a currency with other decimal places needs the precision per currency |
+| Q6 | Which currencies are paid, and can a line or a recalculation come in another currency? | one currency per line, set by the first calculation; amounts have two decimal places; anything in another currency is rejected | another two-decimal currency is one new case of the `Currency` enum; other decimal places need a precision per currency in `Money` |
 | Q7 | What happens when a period is closed or paid? Where do corrections after payment go? | not modelled | a `Closed` state and event; later corrections go to the next period |
 | Q8 | Who may adjust, and do large amounts need a second approval? | any specialist; the author is recorded | an application-level policy; the domain does not change |
 | Q9 | What are the limits of a comment? | 1 to 500 characters after trimming | one constant |

@@ -21,6 +21,9 @@ What can go wrong, what prevents it and which test proves it. Rows are added in 
 
 | What can go wrong | Guarantee | Test |
 |---|---|---|
+| A sum of adjustments is off by a fraction of a cent | integer minor units, parsed from strings ([ADR 0003](adr/0003-money-in-minor-units.md)) | `MoneyTest::testAddsWithoutFloatingPointErrors` |
+| An inexact or overflowing amount enters the history | `Money` rejects fractions of a cent and amounts out of range | `MoneyTest` |
+| An adjustment is saved without a real explanation | `AdjustmentComment` rejects blank and whitespace-only comments | `AdjustmentCommentTest` |
 
 ## 3. Rules for the code
 
