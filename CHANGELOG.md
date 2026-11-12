@@ -5,8 +5,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Added
+- CI status badge in the README.
+
 ### Changed
 - CI uses `actions/checkout@v6` and `ramsey/composer-install@v4`, which run on Node.js 24; GitHub no longer supports Node.js 20 for actions.
+- CI runs on `ubuntu-24.04` instead of `ubuntu-latest`, so a new runner image does not change the build unannounced.
+- Mutation testing does not generate the five changes that change nothing a test could observe, and requires every other change to be caught (100 % instead of 97.8 %); CI shows no annotations for them any more.
 
 ## [1.2.0] - 2026-11-12
 

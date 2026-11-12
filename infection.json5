@@ -6,15 +6,30 @@
     },
     "testFrameworkOptions": "--testsuite=unit",
     "timeout": 30,
-    // Release 1.2.0: 233 of 238 mutants killed (97.90 %), every line covered. The five that survive change nothing a
-    // test could see; they are listed in docs/architecture.md. One more survivor (97.48 %) is below the gate.
-    "minMsi": 97.8,
-    "minCoveredMsi": 97.8,
+    // Every mutant must be killed. The five changes listed below change nothing a test could see, so they are not
+    // generated; docs/architecture.md explains each of them. A new survivor fails the check.
+    "minMsi": 100,
+    "minCoveredMsi": 100,
     "logs": {
         "text": "build/infection/infection.log",
         "summary": "build/infection/summary.log"
     },
     "mutators": {
-        "@default": true
+        "@default": true,
+        // EarningLine: apply() repeats the currency check of a recalculation and the range check of an adjustment.
+        "MethodCallRemoval": {
+            "ignoreSourceCodeByRegex": [
+                "\\$this->systemValue->assertSameCurrency\\(\\$value\\);",
+                "\\$this->currentValue->add\\(\\$amount\\);"
+            ]
+        },
+        // EarningLines::save: the mark of a failed line is read with isset, which ignores its value.
+        "TrueValue": {
+            "ignoreSourceCodeByRegex": ["\\$this->failed\\[\\$line\\] = true;"]
+        },
+        // Money::fromDecimal: PHP multiplies and adds numeric strings as integers.
+        "CastInt": {
+            "ignoreSourceCodeByRegex": ["\\$minorUnits = \\(int\\) \\$parts\\[2\\] \\* 100 \\+ \\(int\\) str_pad\\(.*"]
+        }
     }
 }

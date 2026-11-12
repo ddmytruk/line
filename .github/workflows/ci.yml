@@ -17,7 +17,7 @@ concurrency:
 jobs:
   qa:
     name: Coding style, static analysis, tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6
       - uses: shivammathur/setup-php@v2
@@ -35,7 +35,7 @@ jobs:
 
   mutation:
     name: Mutation testing of the core
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6
       - uses: shivammathur/setup-php@v2
@@ -47,7 +47,7 @@ jobs:
 
   integration:
     name: Laravel adapters against MySQL
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     services:
       mysql:
         image: mysql:8.4
@@ -81,7 +81,7 @@ jobs:
 
   image:
     name: Development image builds
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6
       - run: docker build -f docker/Dockerfile .

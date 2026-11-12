@@ -1,5 +1,7 @@
 # Earning Line
 
+[![CI](https://github.com/ddmytruk/line/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ddmytruk/line/actions/workflows/ci.yml)
+
 A payroll earning line with a transparent, append-only history of manual adjustments.
 
 The payroll calculation produces the value of a line and may recalculate it when source data changes. A payroll specialist can correct the line with signed manual adjustments, each with a mandatory comment. Adjustments are never edited or removed; a mistake is fixed by a compensating adjustment. The first adjustment freezes the line, so later recalculations no longer change it. The current value and the full history are available at any time.
