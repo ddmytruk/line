@@ -17,6 +17,7 @@ A review is added in the commit of the step it reviews, together with its row he
 | 8 | [History read model](payroll/reviews/08-line-history.md) | payroll | 15 | 14 | 0 | 1 |
 | 9 | [Command-line demo through the bus and release 1.1.0](payroll/reviews/09-command-line-demo-through-the-bus.md) | payroll | 6 | 6 | 0 | 0 |
 | 10 | [Laravel and MySQL](project/reviews/10-laravel-and-mysql.md) | project | 10 | 9 | 1 | 0 |
+| 11 | [Stores in the database](common/reviews/11-stores-in-the-database.md) | common | 8 | 6 | 2 | 0 |
 
 ## What the AI got wrong and how it was caught
 
@@ -35,3 +36,4 @@ What the reviews caught that the implementing agent got wrong: one case per step
 | 8 | `InMemoryEventStore::restore` | Rollback of the list of all events was never checked | Events dropped by a failed command could come back in a rebuild as facts that never happened | [Review of step 8](payroll/reviews/08-line-history.md): a mutation that restored only the streams survived | The transaction test checks `all()` after a failure |
 | 9 | `DemoCommand` | The demo compared the history before and after a rebuild in the same store | A rebuild that did nothing would still be printed as "equal", so the demo claimed something it never showed | [Review of step 9](payroll/reviews/09-command-line-demo-through-the-bus.md) | The demo drops the history before rebuilding it |
 | 10 | `docker/compose.yaml` | The application service waited for a healthy MySQL | Every check, including the Definition of Done gate, started a database it does not use and failed when MySQL could not start | [Review of step 10](project/reviews/10-laravel-and-mysql.md) | MySQL starts only for the integration tests and artisan |
+| 11 | MySQL migrations | Id columns with MySQL's default collation | `cmd-1` and `Cmd-1` were one command id in MySQL and two in memory, so a valid command could be refused as a reused id; the contract tests did not say which rule holds | [Review of step 11](common/reviews/11-stores-in-the-database.md): equality probes in MySQL | Byte-for-byte collation; both contracts test ids that differ only in case or trailing spaces |

@@ -37,6 +37,6 @@ Each step below is one commit: code, tests, the ADR of a decision taken in that 
 ## 1.2.0 Laravel and a database
 
 - [x] **10. Laravel application and MySQL.** Laravel inside `app/`, MySQL in Docker Compose and CI, a test suite against the database. ADR 0012.
-- [ ] **11. Stores in the database.** Event store, processed commands and transaction in MySQL; stored events cannot be changed or deleted; the same contract tests as the in-memory stores.
+- [x] **11. Stores in the database.** Event store, processed commands and transaction in MySQL; stored events cannot be changed or deleted; the same contract tests as the in-memory stores. ADR 0013.
 - [ ] **12. Payroll on Laravel.** Payroll events stored under stable names, the line history in a table, artisan commands and an HTTP API.
 - [ ] **13. Mutation testing and release.** Mutation testing of the core in CI, README for the release. Tag `v1.2.0`.

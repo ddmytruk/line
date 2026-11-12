@@ -28,6 +28,18 @@ abstract class ProcessedCommandsContract extends TestCase
         self::assertSame('fingerprint-2', $store->fingerprintOf('c-2'));
     }
 
+    public function testIdsDifferingOnlyInLetterCaseOrTrailingSpacesAreDifferentCommands(): void
+    {
+        $store = $this->createStore();
+        $store->add('c-1', 'fingerprint-1');
+        $store->add('C-1', 'fingerprint-2');
+        $store->add('c-1 ', 'fingerprint-3');
+
+        self::assertSame('fingerprint-1', $store->fingerprintOf('c-1'));
+        self::assertSame('fingerprint-2', $store->fingerprintOf('C-1'));
+        self::assertSame('fingerprint-3', $store->fingerprintOf('c-1 '));
+    }
+
     public function testRefusesToStoreAnIdTwiceAndKeepsTheFirstFingerprint(): void
     {
         $store = $this->createStore();

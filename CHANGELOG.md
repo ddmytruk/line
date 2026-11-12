@@ -8,6 +8,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ### Added
 - Laravel application inside `app/` with MySQL in Docker Compose and CI; `make artisan` and `make test-integration` for tests against the database (ADR 0012).
 - Architecture rule: the in-memory adapters and the command-line demo do not depend on Laravel.
+- Event store, processed commands and transaction in MySQL, with the same contract tests as the in-memory ones and tests of two writers at once; triggers refuse to change or delete stored events (ADR 0013).
+- Contract tests for transactions; a run inside another run undoes only its own work.
 
 ## [1.1.0] - 2026-11-12
 

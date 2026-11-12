@@ -21,11 +21,13 @@ flowchart TB
         cli["Payroll/Cli<br/>command-line demo"]
         pmod["Payroll/InMemory<br/>module wiring, line histories"]
         mem["Common/InMemory<br/>in-memory stores, transaction"]
+        db["Common/Database and its provider<br/>MySQL stores, transaction, migrations"]
     end
     cli --> pmod
     cli --> pa
     cli --> pd
     mem --> ca
+    db --> ca
     pmod --> pa
     pmod --> mem
     pa --> pd

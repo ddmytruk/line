@@ -6,6 +6,7 @@
     "require": {
         "php": "^8.4.1",
         "ext-mbstring": "*",
+        "ext-pdo_mysql": "*",
         "laravel/framework": "^13.0"
     },
     "require-dev": {

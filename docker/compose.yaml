@@ -23,6 +23,8 @@ services:
 
   mysql:
     image: mysql:8.4
+    # Lets the migrations create triggers (ADR 0013); init.sql sets the same for CI.
+    command: ["--log-bin-trust-function-creators=1"]
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: earning_line

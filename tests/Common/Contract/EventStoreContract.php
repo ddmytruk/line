@@ -102,6 +102,18 @@ abstract class EventStoreContract extends TestCase
         self::assertCount(2, $store->load('b'));
     }
 
+    public function testStreamIdsDifferingOnlyInLetterCaseOrTrailingSpacesAreDifferentStreams(): void
+    {
+        $store = $this->createStore();
+        $store->append('a', 0, [self::event('a', 'first')]);
+        $store->append('A', 0, [self::event('A', 'first')]);
+        $store->append('a ', 0, [self::event('a ', 'first')]);
+
+        self::assertEquals([self::event('a', 'first')], $store->load('a'));
+        self::assertEquals([self::event('A', 'first')], $store->load('A'));
+        self::assertEquals([self::event('a ', 'first')], $store->load('a '));
+    }
+
     public function testListsTheEventsOfAllStreamsInTheOrderTheyWereAppended(): void
     {
         $store = $this->createStore();

@@ -18,3 +18,4 @@ To add an ADR: take the next number after the last row, copy the [template](proj
 | 0010 | [Models for reading, built synchronously from events](common/adr/0010-synchronous-projections.md) | common | accepted |
 | 0011 | [Drift is shown in the history, not decided in the line](payroll/adr/0011-drift-in-the-history.md) | payroll | accepted |
 | 0012 | [Laravel as an adapter, inside app/](project/adr/0012-laravel-inside-app.md) | project | accepted |
+| 0013 | [Event store and processed commands in MySQL](common/adr/0013-event-store-in-mysql.md) | common | accepted |

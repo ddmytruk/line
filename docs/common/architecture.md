@@ -14,6 +14,10 @@ Building blocks that any module can use. They know nothing about business module
 | Application | `Projector`, `ProjectingEventStore`, `ReadModelRebuild` | build models for reading from events in the same transaction as the events; build them again from all events ([ADR 0010](adr/0010-synchronous-projections.md)) |
 | Adapter | `App\Modules\Common\InMemory\InMemoryEventStore`, `InMemoryProcessedCommands` | stores in the memory of the running process |
 | Adapter | `App\Modules\Common\InMemory\InMemoryTransaction` | takes a snapshot of the in-memory stores and puts it back when the work fails |
+| Adapter | `App\Modules\Common\Database\DatabaseEventStore`, `DatabaseProcessedCommands` | stores in MySQL; a unique key stops a writer that raced another one ([ADR 0013](adr/0013-event-store-in-mysql.md)) |
+| Adapter | `App\Modules\Common\Database\DatabaseTransaction` | a database transaction; inside another one, a savepoint |
+| Adapter | `App\Modules\Common\Database\EventSerializer`, `SerializedEvent` | an event as a stable type name and a JSON payload; provided by the module whose events are stored |
+| Adapter | `App\Modules\Common\CommonServiceProvider` | puts the event store, the processed commands and the transaction on the default database connection and adds the migrations of `events` and `processed_commands` |
 
 ## 2. Saving a change
 
@@ -75,7 +79,11 @@ A module reads a model through a query handler of its own, called directly: ther
 | An aggregate is created twice | creating is an append at version 0 | `EventStoreContract::testRefusesToStartAStreamThatAlreadyExists` |
 | Half of a batch is written | a store appends all events or none | `EventStoreContract::testRefusesAnEventOfAnotherAggregateAndWritesNoneOfTheBatch` |
 | Events of one aggregate end up in another's stream | a store checks the aggregate id of every event | `EventStoreContract::testRefusesAnEventOfAnotherAggregateAndWritesNoneOfTheBatch` |
-| A new store behaves differently from the tested one | every store runs the same contract tests | `EventStoreContract`, `ProcessedCommandsContract`, `EarningLineHistoriesContract` |
+| A new store behaves differently from the tested one | every store runs the same contract tests | `EventStoreContract`, `ProcessedCommandsContract`, `TransactionContract`, `EarningLineHistoriesContract` |
+| Two processes pass the version check of a stream at the same moment and both write | a unique key on stream and version; the second writer gets a conflict | `DatabaseEventStoreTest::testAWriterThatCheckedTheVersionTogetherWithAnotherOneGetsAConflict` |
+| Two processes carry out the same command at the same moment | the command id is a primary key; the second gets `CommandAlreadyProcessed` | `DatabaseProcessedCommandsTest::testACopyThatRanAtTheSameTimeIsRefusedWhenItIsStored` |
+| A stored event is changed or deleted in the database | triggers refuse `UPDATE` and `DELETE` | `DatabaseEventStoreTest::testTheDatabaseRefusesToChangeOrDeleteStoredEvents` |
+| A failed part of a command undoes the parts that succeeded | a run inside another run is a savepoint | `TransactionContract::testAFailedInnerRunUndoesOnlyItsOwnWork` |
 | A sender repeats a command and it is carried out twice | the bus skips an id it has carried out | `CommandBusTest::testARepeatedCommandDoesNothing` |
 | A sender reuses an id for another request and it is silently skipped | the content is compared by fingerprint; other content is refused | `CommandBusTest::testRefusesAKnownIdWithOtherContentAndDoesNothing` |
 | Two runs of the same command check the id at the same moment and both are carried out | an id is stored only once; the losing run is dropped | `CommandBusTest::testACommandThatAnotherRunCarriedOutFirstIsSkipped` |
