@@ -89,6 +89,8 @@ sequenceDiagram
 
 A stored history that breaks the rules of the domain, such as a recalculation before the first calculation or an amount in another currency, cannot be input from a user. `get` and `find` report it as `CorruptedEarningLineEvents`.
 
+In MySQL the events are stored under fixed type names by `App\Modules\Payroll\Database\PayrollEventSerializer`: amounts as exact decimal strings with their currency, times in UTC ([ADR 0014](adr/0014-payroll-on-laravel.md)).
+
 ## 4. Commands
 
 Senders change lines with commands, carried out by the [command bus](../common/architecture.md#3-carrying-out-a-command). Commands carry values as the sender sent them: amounts as decimal strings and currencies as codes; each command turns them into money itself. The commands, their handlers and the repository they use are in `Application/Command/`.
@@ -104,7 +106,7 @@ Senders change lines with commands, carried out by the [command bus](../common/a
 
 ## 5. History for reading
 
-A specialist reads a line as `Payroll\Application\History\EarningLineHistory`, built by `EarningLineHistoryProjector` from the line's events ([ADR 0010](../common/adr/0010-synchronous-projections.md)) and kept in `EarningLineHistories` (in memory: `App\Modules\Payroll\InMemory\InMemoryEarningLineHistories`).
+A specialist reads a line as `Payroll\Application\History\EarningLineHistory`, built by `EarningLineHistoryProjector` from the line's events ([ADR 0010](../common/adr/0010-synchronous-projections.md)) and kept in `EarningLineHistories` (in memory: `App\Modules\Payroll\InMemory\InMemoryEarningLineHistories`; in MySQL: `App\Modules\Payroll\Database\DatabaseEarningLineHistories`, one JSON document per line).
 
 The history is read through a query: `GetEarningLineHistory` names the line, and `GetEarningLineHistoryHandler` returns its `EarningLineHistory` or reports `EarningLineNotFound`; a malformed id is refused as for a command. Commands are in `Application/Command/`, queries in `Application/Query/`, and the model they read in `Application/History/`. A query goes through no bus, because reading needs no transaction, no protection against repeats and no retry.
 
@@ -117,7 +119,20 @@ The history is read through a query: `GetEarningLineHistory` names the line, and
 
 The version is what a specialist sends back with `AddManualAdjustment`. `bin/earning-line demo` wires the module with in-memory adapters (`App\Modules\Payroll\InMemory\InMemoryPayrollModule`), sends the reference scenario as commands, reads this history through `GetEarningLineHistory` and prints it. In the reference scenario, if the calculation sends 1,100.00 in step 4, the history ends at 1,104.45 with a drift of +50.00.
 
-## 6. Guarantees
+## 6. Ways in
+
+With Laravel and MySQL (`App\Modules\Payroll\PayrollServiceProvider`), the same commands and query are reached from artisan and HTTP ([ADR 0014](adr/0014-payroll-on-laravel.md)):
+
+| Action | Artisan | HTTP |
+|---|---|---|
+| record a calculated value | `payroll:record-value <line> <amount> <currency>` | `POST /lines/{id}/calculations` |
+| adjust | `payroll:adjust --expected-version=<n> --specialist=<id> -- <line> <amount> <currency> <comment>` | `POST /lines/{id}/adjustments` |
+| read the history | `payroll:history <line>` | `GET /lines/{id}/history` |
+| build the histories again | `payroll:rebuild` | |
+
+A request repeated with the same command id changes nothing. Refusals: the line does not exist (HTTP 404), it changed since the version sent or the command id was used for other content (409), a rule is broken or a field is missing (422); artisan prints the reason and exits with 1, or with 2 when a required option is missing. Damaged stored data is a fault of the server (500), not a refusal.
+
+## 7. Guarantees
 
 What can go wrong, what prevents it and which test proves it. Rows are added in the step that introduces the guarantee.
 
@@ -143,8 +158,14 @@ What can go wrong, what prevents it and which test proves it. Rows are added in 
 | An ignored recalculation hides that the calculation disagrees | the history shows drift | `EarningLineHistoryTest::testTheReferenceScenarioReadsAsItsHistory` |
 | A failed save is repeated with the same line object and reports success without saving | the repository refuses to save a line whose save failed | `EarningLinesTest::testALineWhoseSaveFailedCannotBeSavedAgain` |
 | A corrupted stored history is shown as a line with different money | the repository reports it as corrupted | `EarningLinesTest::testReportsAStoredHistoryThatBreaksTheRulesAsCorrupted` |
+| Renaming an event class makes stored events unreadable | stored type names are fixed in the serializer | `PayrollEventSerializerTest::testStoresAnEventUnderAFixedNameAndReadsItBackUnchanged` |
+| A damaged stored event is read as a line with different money | stored values go through the domain's value objects; anything else is refused | `PayrollEventSerializerTest::testRefusesDamagedStoredData` |
+| The line behaves differently on MySQL than in memory | the reference scenario on MySQL gives the same history as in memory and the same after a rebuild | `ReferenceScenarioOnTheDatabaseTest` |
+| An amount sent over HTTP loses exactness on the way | amounts must be JSON strings; a number is refused | `HttpApiTest::testAnAdjustmentThatBreaksARuleIsRefusedAndChangesNothing` |
+| Damaged stored data is answered as if the request were wrong, so the client keeps retrying | a stored value the domain refuses is reported as damaged data | `HttpApiTest::testDamagedStoredDataIsAFaultOfTheServerNotOfTheRequest` |
+| A specialist adjusts a line over HTTP that changed since they saw it | the request carries the version; the answer is 409 and nothing is saved | `HttpApiTest::testAnAdjustmentOfAVersionTheSpecialistNoLongerSeesIsAConflict` |
 
-## 7. Rules for the code
+## 8. Rules for the code
 
 Rules of this module on top of the [AI workflow](../project/ai-workflow.md#rules-for-the-code):
 

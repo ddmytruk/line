@@ -10,6 +10,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - Architecture rule: the in-memory adapters and the command-line demo do not depend on Laravel.
 - Event store, processed commands and transaction in MySQL, with the same contract tests as the in-memory ones and tests of two writers at once; triggers refuse to change or delete stored events (ADR 0013).
 - Contract tests for transactions; a run inside another run undoes only its own work.
+- Payroll on MySQL: events stored under fixed type names, the line history as one JSON document per line, the module wired in `PayrollServiceProvider` (ADR 0014).
+- Artisan commands `payroll:record-value`, `payroll:adjust`, `payroll:history` and `payroll:rebuild`.
+- HTTP API: `POST /lines/{id}/calculations`, `POST /lines/{id}/adjustments`, `GET /lines/{id}/history`.
+- `SystemClock`: the time of the machine in UTC.
+- Open question Q17: how the system knows which specialist sends an adjustment.
 
 ## [1.1.0] - 2026-11-12
 

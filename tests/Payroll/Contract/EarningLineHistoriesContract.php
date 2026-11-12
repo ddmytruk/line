@@ -28,6 +28,19 @@ abstract class EarningLineHistoriesContract extends TestCase
         self::assertEquals($history, $store->find(Lines::LINE_ID));
     }
 
+    public function testReturnsEveryKindOfEntryWithAllItsData(): void
+    {
+        $store = $this->createStore();
+        $history = EarningLineHistory::start(Lines::LINE_ID, Lines::at('2026-01-15 09:00:00.250000'), Lines::usd('1000.00'))
+            ->recalculated(Lines::at('2026-01-15 10:00:00'), Lines::usd('1050.00'))
+            ->adjusted(Lines::at('2026-01-15 11:00:00'), Lines::usd('-45.55'), 1, 'Dental plan waived', 'specialist-1')
+            ->recalculationIgnored(Lines::at('2026-01-15 12:00:00'), Lines::usd('1100.00'));
+        $store->save($history);
+
+        self::assertEquals($history, $store->find(Lines::LINE_ID));
+        self::assertSame('2026-01-15 09:00:00.250000 UTC', $store->find(Lines::LINE_ID)?->entries[0]->at->format('Y-m-d H:i:s.u e'));
+    }
+
     public function testASavedHistoryReplacesThePreviousOneOfTheSameLine(): void
     {
         $store = $this->createStore();

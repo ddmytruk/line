@@ -20,6 +20,7 @@ flowchart TB
     subgraph app["app/ (Laravel application, ADR 0012) and app/Modules (adapters)"]
         cli["Payroll/Cli<br/>command-line demo"]
         pmod["Payroll/InMemory<br/>module wiring, line histories"]
+        plar["Payroll provider, Console, Http, Database<br/>artisan commands, HTTP API,<br/>stored events, line histories"]
         mem["Common/InMemory<br/>in-memory stores, transaction"]
         db["Common/Database and its provider<br/>MySQL stores, transaction, migrations"]
     end
@@ -30,6 +31,9 @@ flowchart TB
     db --> ca
     pmod --> pa
     pmod --> mem
+    plar --> pa
+    plar --> db
+    plar --> cli
     pa --> pd
     pa --> ca
     pd --> cd
@@ -47,7 +51,7 @@ Arrows point in the direction of dependencies. The rules of [ADR 0001](project/a
 | Adapters in `app/` depend on the core, never the other way round | the core does not know how it is used |
 | In-memory adapters and the command-line demo do not depend on Laravel ([ADR 0012](project/adr/0012-laravel-inside-app.md)) | the core keeps running without a framework |
 
-Each module describes its own architecture next to its other documents: [Common](common/architecture.md) (building blocks, saving a change, carrying out a command, reading, guarantees) and [Payroll](payroll/architecture.md) (context, domain model, storage, commands, history for reading, guarantees).
+Each module describes its own architecture next to its other documents: [Common](common/architecture.md) (building blocks, saving a change, carrying out a command, reading, guarantees) and [Payroll](payroll/architecture.md) (context, domain model, storage, commands, history for reading, ways in, guarantees).
 
 ### Folders inside a layer
 

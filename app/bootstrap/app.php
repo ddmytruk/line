@@ -11,7 +11,10 @@ use Illuminate\Foundation\Configuration\Exceptions;
  * Each module registers itself through its service provider, listed in providers.php.
  */
 $app = Application::configure(basePath: dirname(__DIR__))
-    ->withExceptions(static function (Exceptions $exceptions): void {})
+    ->withExceptions(static function (Exceptions $exceptions): void {
+        // The application serves only a JSON API, so every error is answered as JSON, whatever the client accepts.
+        $exceptions->shouldRenderJsonWhen(static fn(): bool => true);
+    })
     ->create();
 
 $app->useAppPath($app->basePath());

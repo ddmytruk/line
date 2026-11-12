@@ -16,8 +16,6 @@ use Illuminate\Foundation\Application;
  */
 final class TestApplication
 {
-    private const array TABLES = ['events', 'processed_commands'];
-
     private static ?Application $app = null;
 
     public static function get(): Application
@@ -57,11 +55,19 @@ final class TestApplication
         return $app->make(DatabaseManager::class)->connection('other');
     }
 
-    /** Empties the tables. TRUNCATE is not a DELETE, so the triggers that protect stored events do not stop it. */
+    /** Empties every table of the modules. TRUNCATE is not a DELETE, so the triggers that protect stored events do not stop it. */
     public static function emptyTables(): void
     {
-        foreach (self::TABLES as $table) {
-            self::connection()->statement(\sprintf('TRUNCATE TABLE %s', $table));
+        $connection = self::connection();
+
+        foreach ($connection->select('SHOW TABLES') as $row) {
+            \assert(\is_object($row));
+            $table = array_values((array) $row)[0];
+            \assert(\is_string($table));
+
+            if ($table !== 'migrations') {
+                $connection->statement(\sprintf('TRUNCATE TABLE `%s`', $table));
+            }
         }
     }
 }

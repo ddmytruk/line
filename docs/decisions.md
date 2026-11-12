@@ -19,3 +19,4 @@ To add an ADR: take the next number after the last row, copy the [template](proj
 | 0011 | [Drift is shown in the history, not decided in the line](payroll/adr/0011-drift-in-the-history.md) | payroll | accepted |
 | 0012 | [Laravel as an adapter, inside app/](project/adr/0012-laravel-inside-app.md) | project | accepted |
 | 0013 | [Event store and processed commands in MySQL](common/adr/0013-event-store-in-mysql.md) | common | accepted |
+| 0014 | [Payroll on the database, the command line and HTTP](payroll/adr/0014-payroll-on-laravel.md) | payroll | accepted |

@@ -18,6 +18,7 @@ A review is added in the commit of the step it reviews, together with its row he
 | 9 | [Command-line demo through the bus and release 1.1.0](payroll/reviews/09-command-line-demo-through-the-bus.md) | payroll | 6 | 6 | 0 | 0 |
 | 10 | [Laravel and MySQL](project/reviews/10-laravel-and-mysql.md) | project | 10 | 9 | 1 | 0 |
 | 11 | [Stores in the database](common/reviews/11-stores-in-the-database.md) | common | 8 | 6 | 2 | 0 |
+| 12 | [Payroll on Laravel](payroll/reviews/12-payroll-on-laravel.md) | payroll | 9 | 9 | 0 | 0 |
 
 ## What the AI got wrong and how it was caught
 
@@ -37,3 +38,4 @@ What the reviews caught that the implementing agent got wrong: one case per step
 | 9 | `DemoCommand` | The demo compared the history before and after a rebuild in the same store | A rebuild that did nothing would still be printed as "equal", so the demo claimed something it never showed | [Review of step 9](payroll/reviews/09-command-line-demo-through-the-bus.md) | The demo drops the history before rebuilding it |
 | 10 | `docker/compose.yaml` | The application service waited for a healthy MySQL | Every check, including the Definition of Done gate, started a database it does not use and failed when MySQL could not start | [Review of step 10](project/reviews/10-laravel-and-mysql.md) | MySQL starts only for the integration tests and artisan |
 | 11 | MySQL migrations | Id columns with MySQL's default collation | `cmd-1` and `Cmd-1` were one command id in MySQL and two in memory, so a valid command could be refused as a reused id; the contract tests did not say which rule holds | [Review of step 11](common/reviews/11-stores-in-the-database.md): equality probes in MySQL | Byte-for-byte collation; both contracts test ids that differ only in case or trailing spaces |
+| 12 | `PayrollEventSerializer` | Stored values read back through the domain's value objects let the domain's exceptions through | A damaged stored amount was answered as HTTP 422, so a client would keep correcting a correct request and operations would never see a fault | [Review of step 12](payroll/reviews/12-payroll-on-laravel.md): an event with a three-decimal amount inserted into the table | Damaged stored data is reported as such and answered with 500 |
