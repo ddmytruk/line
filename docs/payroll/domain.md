@@ -41,14 +41,14 @@ A line never leaves the frozen state, even if its adjustments add up to zero. Cl
 
 ## Recorded facts
 
-The line keeps its history as a sequence of facts (domain events). Each fact holds everything needed to rebuild the line, to show its history and to compare a later calculated value with the frozen one.
+The line keeps its history as a sequence of facts, implemented as domain events. Each fact holds everything needed to rebuild the line, to show its history and to compare a later calculated value with the frozen one.
 
 | Fact | Recorded when | Data |
 |---|---|---|
-| Line calculated | the calculation creates the line | line id, system value, time |
-| Line recalculated | the calculation sends a different value for an open line | line id, new system value, time |
-| Recalculation ignored | the calculation sends a different value for a frozen line | line id, the value the calculation sent, time |
-| Adjustment added | a specialist adjusts the line | line id, adjustment number, amount, comment, specialist id, time |
+| `SystemValueCalculated` | the calculation creates the line | line id, system value, time |
+| `SystemValueRecalculated` | the calculation sends a different value for an open line | line id, new system value, time |
+| `SystemRecalculationIgnored` | the calculation sends a different value for a frozen line | line id, the value the calculation sent, time |
+| `ManualAdjustmentAdded` | a specialist adjusts the line | line id, adjustment number, amount, comment, specialist id, time |
 
 Times are passed in by the caller, so the domain never reads the system clock and the history is reproducible in tests.
 
@@ -93,6 +93,41 @@ Each case lists the behaviour and the test that proves it. Cases are added in th
 | Surrounding spaces | `"  Bonus  "` | stored as `"Bonus"` | the history keeps what was meant, not the padding | `AdjustmentCommentTest::testTrimsSurroundingWhitespace` |
 | Too long | 501 characters | rejected | an append-only history must not accept unbounded text (Q9) | `AdjustmentCommentTest::testRejectsATooLongComment` |
 
+### Freezing and recalculation
+
+| Case | Example | Behaviour | Why | Test |
+|---|---|---|---|---|
+| Recalculation before the first adjustment | 1,000 → 1,050 | replaces the value; 1,050 is what will be frozen | adjustments must be relative to the value the specialist saw | `EarningLineTest::testTheFirstAdjustmentFreezesTheLatestSystemValue` |
+| Recalculation after an adjustment | frozen at 1,050, value 1,004.45, calculation sends 1,100 | value stays 1,004.45; the 1,100 is recorded | the rule says recalculation no longer affects the line; the audit keeps what was sent | `EarningLineTest::testARecalculationOfAFrozenLineIsRecordedButChangesNothing` |
+| Adjustments add up to zero | +10, then −10 | the line stays frozen | freezing records a decision of a person, arithmetic does not undo it | `EarningLineTest::testALineStaysFrozenWhenItsAdjustmentsAddUpToZero` |
+| Same value sent again | 1,050 sent every night | nothing recorded | an unchanged value carries no information (Q12) | `EarningLineTest::testTheSameValueFromTheCalculationIsNotRecordedAgain` |
+| Same ignored value sent again | 1,100 twice for a frozen line | recorded once | compared with the last value sent, not with the frozen one | same |
+| Calculation returns to the frozen value | 1,100, then 1,050 | recorded | the drift went back to zero, which the history must show | `EarningLineTest::testAFrozenLineRecordsAReturnToTheFrozenValue` |
+| Recalculation in another currency | a EUR value for a USD line | rejected | see Q6 | `EarningLineTest::testRejectsARecalculationInAnotherCurrency` |
+| Drift out of the money range | frozen at −10^13, the calculation sends +10^13 | rejected, nothing recorded | drift must always be representable, so a stored value can always be compared; no real pay line comes close | `EarningLineTest::testRejectsACalculatedValueTooFarFromTheFrozenValueWithoutATrace` |
+
+### Adjustments
+
+| Case | Example | Behaviour | Why | Test |
+|---|---|---|---|---|
+| Zero amount | 0.00 with a comment | rejected, nothing recorded, the line stays open | an adjustment must change something (Q4) | `EarningLineTest::testRejectsAZeroAdjustmentWithoutATrace` |
+| Value goes negative | 100.00 and −150.00 | allowed, current value −50.00 | overpayments are recovered this way (Q5) | `EarningLineTest::testAllowsTheValueToBecomeNegative` |
+| Result out of range | an adjustment beyond the money range | rejected, nothing recorded | the history must never hold an overflow | `EarningLineTest::testRejectsAnAdjustmentThatWouldLeaveTheSupportedRangeWithoutATrace` |
+| Numbering | adjustments between recalculations | numbered 1, 2, 3 among adjustments only; continues after a rebuild | a comment such as "reverts #4" must point to the fourth adjustment | `EarningLineTest::testAdjustmentsAreNumberedInTheOrderTheyWereAdded` |
+| Times | added at 11:00 in Kyiv | stored as 09:00 UTC | one time zone in the history (Q10) | `EarningLineTest::testTimesAreRecordedInUtc` |
+
+### History integrity
+
+| Case | Behaviour | Test |
+|---|---|---|
+| History does not start with the first calculation, or has two | rebuilding fails | `EarningLineReplayTest::testRefusesACorruptedHistory` |
+| Recalculation recorded after freezing, or an ignored recalculation of an open line | rebuilding fails | same |
+| Gap or repetition in adjustment numbers | rebuilding fails | same |
+| Event of another type or another line | rebuilding fails | same, and `AggregateRootTest` |
+| Mixed currencies | rebuilding fails | `EarningLineReplayTest::testRefusesAHistoryThatMixesCurrencies` |
+
+Replay checks the rules that protect the money and the order of facts. It does not repeat optimisations of the write path, such as skipping a repeated value. Failing is deliberate: a corrupted history rebuilt "as well as possible" would show a different amount of money with no warning.
+
 ## Open questions
 
 Questions for the product owner. Each has the assumption the code makes today and what changes once it is answered. The design keeps every change additive: no answer requires rewriting the existing rules or history.
@@ -107,7 +142,7 @@ Questions for the product owner. Each has the assumption the code makes today an
 | Q6 | Which currencies are paid, and can a line or a recalculation come in another currency? | one currency per line, set by the first calculation; amounts have two decimal places; anything in another currency is rejected | another two-decimal currency is one new case of the `Currency` enum; other decimal places need a precision per currency in `Money` |
 | Q7 | What happens when a period is closed or paid? Where do corrections after payment go? | not modelled | a `Closed` state and event; later corrections go to the next period |
 | Q8 | Who may adjust, and do large amounts need a second approval? | any specialist; the author is recorded | an application-level policy; the domain does not change |
-| Q9 | What are the limits of a comment? | 1 to 500 characters after trimming | one constant |
+| Q9 | What are the limits of a comment? | 1 to 500 characters after trimming | raising the limit is one constant; a lower limit applies to new input in the application layer, because stored comments must still load |
 | Q10 | In which time zone is the history shown? | stored in UTC | formatting at the edge |
 | Q11 | Can recalculations arrive out of order (an older calculation after a newer one)? | the last one received wins | the calculation sends a sequence number or run id, and stale values are ignored |
 | Q12 | Should a recalculation that sends the same value be recorded? | no, it changes nothing and would flood the history | record it as a "confirmed" fact if the audit needs proof that the calculation ran |

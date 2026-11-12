@@ -10,3 +10,5 @@ To add an ADR: take the next number after the last row, copy the [template](proj
 | 0002 | [Testing strategy](project/adr/0002-testing-strategy.md) | project | accepted |
 | 0003 | [Money as integer minor units](payroll/adr/0003-money-in-minor-units.md) | payroll | accepted |
 | 0004 | [Identifiers](payroll/adr/0004-identifiers.md) | payroll | accepted |
+| 0005 | [Aggregate state changes only through events](common/adr/0005-state-changes-through-events.md) | common | accepted |
+| 0006 | [Freezing a line and recording ignored recalculations](payroll/adr/0006-freeze-and-ignored-recalculations.md) | payroll | accepted |
