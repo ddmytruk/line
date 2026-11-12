@@ -12,6 +12,7 @@ A review is added in the commit of the step it reviews, together with its row he
 | 3 | [Aggregate](payroll/reviews/03-aggregate.md) | payroll | 9 | 8 | 0 | 1 |
 | 4 | [Executable specification and property-based tests](payroll/reviews/04-specification-and-properties.md) | payroll | 8 | 8 | 0 | 0 |
 | 5 | [Command-line demo and release 1.0.0](payroll/reviews/05-command-line-demo.md) | payroll | 6 | 5 | 1 | 0 |
+| 6 | [Event store and repository](common/reviews/06-event-store.md) | common | 9 | 9 | 0 | 0 |
 
 ## What the AI got wrong and how it was caught
 
@@ -25,3 +26,4 @@ What the reviews caught that the implementing agent got wrong: one case per step
 | 3 | `EarningLineTest` | Time-zone test only for the first event, other paths compared with `assertEquals` | `assertEquals` ignores the time zone of dates, so local times could be stored unnoticed | [Review of step 3](payroll/reviews/03-aggregate.md): mutation probe removing the UTC conversion survived | Formatted times checked for every kind of fact |
 | 4 | `ReferenceScenarioTest` | The scenario checked values but not the recorded log | A line could silently stop recording ignored recalculations and the specification would stay green | [Review of step 4](payroll/reviews/04-specification-and-properties.md): mutations of `EarningLine` survived the scenario | The log is compared fact by fact |
 | 5 | `.github/workflows/ci.yml` | CI checked tests but never ran the command-line entry point | A broken autoload mapping for the new adapter namespace would pass CI | [Review of step 5](payroll/reviews/05-command-line-demo.md) | CI runs the demo |
+| 6 | `EarningLines::save` | The repository released the line's events before appending them | After a conflict, saving the same line object again appended nothing and reported success, so a specialist's adjustment was lost without an error | [Review of step 6](common/reviews/06-event-store.md): a throwaway script repeated a failed save | A line whose save failed cannot be saved again; it has to be loaded anew |

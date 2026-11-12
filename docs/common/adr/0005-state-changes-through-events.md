@@ -21,4 +21,4 @@ The history of a line is the thing being audited, and the current value must alw
 - **Tolerant replay that skips unknown events:** a line could come back with different money and no error.
 
 ## Consequences
-The domain records events even though nothing stores them yet; storing them adds code around the domain without changing it. The cost is one `apply` method per event.
+The domain records events without knowing how they are stored; storing them adds code around the domain without changing it. The cost is one `apply` method per event.

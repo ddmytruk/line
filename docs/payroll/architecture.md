@@ -1,6 +1,6 @@
 # Payroll architecture
 
-How the Payroll module is built, from the outside in: who uses an earning line, its domain model and what it guarantees. Modules, layers and quality checks of the whole repository are in the [architecture overview](../architecture.md).
+How the Payroll module is built, from the outside in: who uses an earning line, its domain model, how lines are stored and what it guarantees. Modules, layers and quality checks of the whole repository are in the [architecture overview](../architecture.md).
 
 ## 1. Context
 
@@ -77,7 +77,19 @@ sequenceDiagram
     L-->>C: events recorded since the last call
 ```
 
-## 3. Guarantees
+## 3. Storage
+
+`Payroll\Application\Command\EarningLines` stores a line as its events in the [event store](../common/architecture.md) of the shared core. The stream id is the line id.
+
+| Operation | Result |
+|---|---|
+| `get(id)` | the line rebuilt from its events; `EarningLineNotFound` if there are none |
+| `find(id)` | the same, or `null` |
+| `save(line)` | appends what the line recorded since it was loaded or created, at the version it was loaded with; `ConcurrencyConflict` if the line changed in the meantime ([ADR 0008](../common/adr/0008-optimistic-concurrency.md)); a line object whose save failed is not saved again, it has to be loaded anew |
+
+A stored history that breaks the rules of the domain, such as a recalculation before the first calculation or an amount in another currency, cannot be input from a user. `get` and `find` report it as `CorruptedEarningLineEvents`.
+
+## 4. Guarantees
 
 What can go wrong, what prevents it and which test proves it. Rows are added in the step that introduces the guarantee.
 
@@ -92,8 +104,12 @@ What can go wrong, what prevents it and which test proves it. Rows are added in 
 | A rebuilt line behaves differently from the original | state changes only in `apply()`, which also replays ([ADR 0005](../common/adr/0005-state-changes-through-events.md)) | `EarningLineReplayTest::testARebuiltLineContinuesWhereTheOriginalStopped` |
 | A rule holds for the chosen examples but not in general | invariants checked on hundreds of random sequences against a naive model: current = system + Σ adjustments, freeze, numbering, only changes recorded, replay equality | `EarningLinePropertiesTest` (replay a failure with `PROPERTY_SEED`) |
 | An adjustment is saved without a real explanation | `AdjustmentComment` rejects blank and whitespace-only comments | `AdjustmentCommentTest` |
+| Two specialists adjust the same line at once and both adjustments are saved | the second save is based on an outdated version and is refused | `EarningLinesTest::testRefusesAChangeMadeOnALineThatChangedAfterItWasLoaded` |
+| A line is created twice and the first calculation is lost | creating a line is an append at version 0 | `EarningLinesTest::testRefusesToCreateALineThatAlreadyExists` |
+| A failed save is repeated with the same line object and reports success without saving | the repository refuses to save a line whose save failed | `EarningLinesTest::testALineWhoseSaveFailedCannotBeSavedAgain` |
+| A corrupted stored history is shown as a line with different money | the repository reports it as corrupted | `EarningLinesTest::testReportsAStoredHistoryThatBreaksTheRulesAsCorrupted` |
 
-## 4. Rules for the code
+## 5. Rules for the code
 
 Rules of this module on top of the [AI workflow](../project/ai-workflow.md#rules-for-the-code):
 

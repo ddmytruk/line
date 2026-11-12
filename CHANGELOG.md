@@ -5,6 +5,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Added
+- `EventStore` port with optimistic concurrency, an in-memory event store and contract tests that every store runs (ADR 0007, ADR 0008).
+- `EarningLines` repository: loads a line by replaying its events and saves what it recorded; a stored history that breaks the rules is reported as corrupted.
+- One folder layout for every layer, described in the architecture overview; phpat checks that every exception lives in the `Exception/` folder of its layer.
+
 ## [1.0.0] - 2026-11-12
 
 ### Added
