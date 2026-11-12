@@ -5,6 +5,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [1.2.1] - 2026-11-13
+
 ### Added
 - CI status badge in the README.
 
