@@ -4,7 +4,17 @@ A payroll earning line with a transparent, append-only history of manual adjustm
 
 The payroll calculation produces the value of a line and may recalculate it when source data changes. A payroll specialist can correct the line with signed manual adjustments, each with a mandatory comment. Adjustments are never edited or removed; a mistake is fixed by a compensating adjustment. The first adjustment freezes the line, so later recalculations no longer change it. The current value and the full history are available at any time.
 
-**Release 1.1.0** stores lines as their events and changes them only through commands: the payroll calculation and specialists send commands to a command bus, and a specialist reads the line from a separate history model that also shows drift. Everything is plain PHP; storage sits behind ports with in-memory adapters, so a database is one more adapter. The domain model of release 1.0.0 did not change. See the [plan](docs/project/plan.md).
+**Release 1.2.0** runs the same core on Laravel and MySQL: events, processed commands and line histories are stored in the database, and lines are changed and read through artisan commands and an HTTP API. The core in `src/` is plain PHP and did not change since release 1.1.0, which stores lines as their events, changes them only through commands sent to a command bus and shows a specialist a separate history with drift. Laravel is an adapter in `app/`, and the in-memory demo still runs without it. See the [plan](docs/project/plan.md).
+
+## Releases
+
+| Release | What it adds | Business rules |
+|---|---|---|
+| **1.0.0** Domain model | The complete business solution: the earning line, its rules and history, the reference scenario as an executable specification, a command-line demo. Plain PHP, no storage. | all of them |
+| **1.1.0** Event sourcing and CQRS | Lines stored as their events, commands through a command bus with idempotency and optimistic concurrency, a separate history for reading with drift. | unchanged |
+| **1.2.0** Laravel and MySQL | The same core as a Laravel application: events and histories in MySQL, artisan commands, an HTTP API, mutation testing. | unchanged |
+
+Each release is a tag (`git checkout v1.0.0`) and builds on the one before without changing it: the domain model of 1.0.0 is the same in 1.2.0.
 
 ## Quick start
 
@@ -15,7 +25,27 @@ make install   # build the image and install dependencies
 make demo      # play the reference scenario and print the history
 make qa        # coding style, static analysis with architecture rules, tests that need no database
 make test-integration  # tests of the Laravel adapters against MySQL
+make mutation  # mutation testing of the core
 ```
+
+On MySQL, through artisan (`make artisan` starts MySQL in Docker Compose):
+
+```bash
+make artisan cmd="migrate --force"
+make artisan cmd="payroll:record-value 019a7b2c-3d4e-7f80-9a1b-2c3d4e5f6a7b 1050.00 USD"
+make artisan cmd="payroll:adjust --expected-version=1 --specialist=specialist-1 -- 019a7b2c-3d4e-7f80-9a1b-2c3d4e5f6a7b -45.55 USD 'Dental plan waived'"
+make artisan cmd="payroll:history 019a7b2c-3d4e-7f80-9a1b-2c3d4e5f6a7b"
+```
+
+Or over HTTP, with `make serve` running (`make serve PORT=8080` if port 8000 is taken):
+
+```bash
+curl -X POST localhost:8000/lines/019a7b2c-3d4e-7f80-9a1b-2c3d4e5f6a7b/calculations \
+     -H 'Content-Type: application/json' -d '{"commandId": "c-2", "amount": "1100.00", "currency": "USD"}'
+curl localhost:8000/lines/019a7b2c-3d4e-7f80-9a1b-2c3d4e5f6a7b/history
+```
+
+The API, its answers and the artisan commands are described in the [Payroll architecture](docs/payroll/architecture.md#6-ways-in). While MySQL runs, a database client on the host reaches it at `127.0.0.1:3307` (user and password `earning_line`; another port with `MYSQL_PORT=3308`).
 
 `make demo` sends the reference scenario as commands, then prints every step, the history a specialist reads and the full log:
 
@@ -77,15 +107,20 @@ flowchart LR
 | A repeated command is carried out once | [`CommandBus`](src/Common/Application/Command/CommandBus.php) | [`CommandBusTest`](tests/Common/Unit/Application/CommandBusTest.php) |
 | Nobody adjusts a version they have not seen | [`AddManualAdjustmentHandler`](src/Payroll/Application/Command/AddManualAdjustmentHandler.php), [`EarningLines`](src/Payroll/Application/Command/EarningLines.php) | [`AddManualAdjustmentTest`](tests/Payroll/Application/AddManualAdjustmentTest.php) |
 | The history agrees with the line and shows drift | [`EarningLineHistoryProjector`](src/Payroll/Application/History/EarningLineHistoryProjector.php) | [`EarningLineHistoryTest`](tests/Payroll/Application/EarningLineHistoryTest.php), [`EarningLineHistoryPropertiesTest`](tests/Payroll/Application/EarningLineHistoryPropertiesTest.php) |
-| Every store behaves the same | ports in `src/*/Application` and its folders, adapters in `app/Modules/*/InMemory` | contract tests in `tests/*/Contract` |
+| Every store behaves the same | ports in `src/*/Application` and its folders, adapters in `app/Modules/*/InMemory` and `app/Modules/*/Database` | contract tests in `tests/*/Contract`, run against MySQL in `tests/*/Integration` |
+| Two writers at once on MySQL | [`DatabaseEventStore`](app/Modules/Common/Database/DatabaseEventStore.php): a unique key on stream and version ([ADR 0013](docs/common/adr/0013-event-store-in-mysql.md)) | [`DatabaseEventStoreTest`](tests/Common/Integration/DatabaseEventStoreTest.php) |
+| The same line on MySQL as in memory | [`PayrollServiceProvider`](app/Modules/Payroll/PayrollServiceProvider.php) ([ADR 0014](docs/payroll/adr/0014-payroll-on-laravel.md)) | [`ReferenceScenarioOnTheDatabaseTest`](tests/Payroll/Integration/ReferenceScenarioOnTheDatabaseTest.php) |
 
 ```
 src/Common/Domain         aggregate root shared by modules
 src/Common/Application    event store port, command bus, projectors
 src/Payroll/Domain        the earning line: rules, events, value objects
 src/Payroll/Application   commands and handlers, queries, repository, line history
+app/                      the Laravel application (ADR 0012): bootstrap/, storage/, artisan
 app/Modules/*/InMemory    in-memory adapters and wiring
-app/Modules/Payroll/Cli   the command-line demo
+app/Modules/*/Database    MySQL stores and migrations; each module has its service provider
+app/Modules/Payroll/Cli   the command-line demo without Laravel
+app/Modules/Payroll/Console, Http   artisan commands and the HTTP API
 tests/<Module>            tests grouped like the code
 docs/                     architecture, ADRs and reviews, grouped by module
 ```
@@ -102,6 +137,7 @@ The business rules leave a few things open. The code makes these assumptions, ea
 - An adjustment of zero is rejected; the value of a line may become negative.
 - One currency per line, two decimal places; comments up to 500 characters; times stored in UTC.
 - The sender of a command chooses its id and keeps it when it repeats the command; ids are remembered for good.
+- The sender states which specialist adjusts a line; there is no sign-in yet.
 - A specialist's adjustment is refused if the line changed since they looked at it, even by an ignored recalculation.
 - Drift is shown, never applied; what a specialist does about it is an open question.
 

@@ -5,6 +5,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-11-12
+
 ### Added
 - Laravel application inside `app/` with MySQL in Docker Compose and CI; `make artisan` and `make test-integration` for tests against the database (ADR 0012).
 - Architecture rule: the in-memory adapters and the command-line demo do not depend on Laravel.
@@ -15,6 +17,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - HTTP API: `POST /lines/{id}/calculations`, `POST /lines/{id}/adjustments`, `GET /lines/{id}/history`.
 - `SystemClock`: the time of the machine in UTC.
 - Open question Q17: how the system knows which specialist sends an adjustment.
+- Mutation testing of the core with Infection in CI and `make mutation`; the score must stay at 97.8 % or more.
+- `make serve` serves the HTTP API on localhost:8000 (`PORT=` for another port); MySQL of Docker Compose is reachable from the host at 127.0.0.1:3307 (`MYSQL_PORT=` for another port); README for the release, with an overview of the releases.
+
+### Changed
+- The Docker image has pcov for mutation testing; an existing image needs `make build`.
 
 ## [1.1.0] - 2026-11-12
 

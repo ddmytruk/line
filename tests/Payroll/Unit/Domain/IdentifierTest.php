@@ -48,6 +48,8 @@ final class IdentifierTest extends TestCase
     {
         self::assertSame('anna@payroll', new SpecialistId("\u{00A0}anna@payroll\u{200B} ")->value);
         self::assertSame(str_repeat('é', SpecialistId::MAX_LENGTH), new SpecialistId(str_repeat('é', SpecialistId::MAX_LENGTH))->value);
+        // Bytes of Cyrillic letters in UTF-8 look like control characters to a check that does not read UTF-8.
+        self::assertSame("\u{041E}\u{043B}\u{0435}\u{043D}\u{0430}", new SpecialistId("\u{041E}\u{043B}\u{0435}\u{043D}\u{0430}")->value);
     }
 
     /** @return iterable<string, array{string}> */

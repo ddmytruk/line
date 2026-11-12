@@ -16,6 +16,13 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(VisibleText::class)]
 final class AdjustmentCommentTest extends TestCase
 {
+    public function testAcceptsTextInAnyScript(): void
+    {
+        // Bytes of Cyrillic letters in UTF-8 look like control characters to a check that does not read UTF-8.
+        $overtime = "\u{0412}\u{0438}\u{043F}\u{043B}\u{0430}\u{0442}\u{0430} \u{0437}\u{0430} \u{043F}\u{043E}\u{043D}\u{0430}\u{0434}\u{043D}\u{043E}\u{0440}\u{043C}\u{043E}\u{0432}\u{0456}"; // Ukrainian for "overtime payment"
+        self::assertSame($overtime, new AdjustmentComment($overtime)->value);
+    }
+
     public function testTrimsSurroundingWhitespace(): void
     {
         self::assertSame('Overtime bonus', new AdjustmentComment("  Overtime bonus \n")->value);

@@ -19,6 +19,7 @@ A review is added in the commit of the step it reviews, together with its row he
 | 10 | [Laravel and MySQL](project/reviews/10-laravel-and-mysql.md) | project | 10 | 9 | 1 | 0 |
 | 11 | [Stores in the database](common/reviews/11-stores-in-the-database.md) | common | 8 | 6 | 2 | 0 |
 | 12 | [Payroll on Laravel](payroll/reviews/12-payroll-on-laravel.md) | payroll | 9 | 9 | 0 | 0 |
+| 13 | [Mutation testing and release 1.2.0](project/reviews/13-mutation-testing-and-release.md) | project | 10 | 10 | 0 | 0 |
 
 ## What the AI got wrong and how it was caught
 
@@ -39,3 +40,4 @@ What the reviews caught that the implementing agent got wrong: one case per step
 | 10 | `docker/compose.yaml` | The application service waited for a healthy MySQL | Every check, including the Definition of Done gate, started a database it does not use and failed when MySQL could not start | [Review of step 10](project/reviews/10-laravel-and-mysql.md) | MySQL starts only for the integration tests and artisan |
 | 11 | MySQL migrations | Id columns with MySQL's default collation | `cmd-1` and `Cmd-1` were one command id in MySQL and two in memory, so a valid command could be refused as a reused id; the contract tests did not say which rule holds | [Review of step 11](common/reviews/11-stores-in-the-database.md): equality probes in MySQL | Byte-for-byte collation; both contracts test ids that differ only in case or trailing spaces |
 | 12 | `PayrollEventSerializer` | Stored values read back through the domain's value objects let the domain's exceptions through | A damaged stored amount was answered as HTTP 422, so a client would keep correcting a correct request and operations would never see a fault | [Review of step 12](payroll/reviews/12-payroll-on-laravel.md): an event with a three-decimal amount inserted into the table | Damaged stored data is reported as such and answered with 500 |
+| 13 | `docs/architecture.md` | Six surviving mutants declared harmless after reading the code | One of them hid a missing test: a zero adjustment in another currency was refused for the wrong reason, and the gate was set to let one more survivor through | [Review of step 13](project/reviews/13-mutation-testing-and-release.md): each survivor applied by hand | A test for the currency of a zero adjustment; the gate fails on the first new survivor |

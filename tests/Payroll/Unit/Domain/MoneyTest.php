@@ -89,6 +89,14 @@ final class MoneyTest extends TestCase
         Money::fromDecimal('1', Currency::USD)->add(Money::fromDecimal('1', Currency::EUR));
     }
 
+    public function testTellsWhetherAnotherAmountIsInTheSameCurrency(): void
+    {
+        Money::fromDecimal('1', Currency::USD)->assertSameCurrency(Money::fromDecimal('2', Currency::USD));
+
+        $this->expectException(CurrencyMismatch::class);
+        Money::fromDecimal('1', Currency::USD)->assertSameCurrency(Money::fromDecimal('1', Currency::EUR));
+    }
+
     public function testRefusesToSubtractAnotherCurrency(): void
     {
         $this->expectException(CurrencyMismatch::class);

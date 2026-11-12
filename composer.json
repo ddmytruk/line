@@ -11,6 +11,7 @@
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.64",
+        "infection/infection": "^0.35.10",
         "phpat/phpat": "^0.12",
         "phpstan/phpstan": "^2.1",
         "phpstan/phpstan-phpunit": "^2.0",
@@ -33,6 +34,9 @@
         "sort-packages": true,
         "platform": {
             "php": "8.4.1"
+        },
+        "allow-plugins": {
+            "infection/extension-installer": false
         }
     },
     "scripts": {
@@ -41,6 +45,7 @@
         "stan": "phpstan analyse --no-progress --memory-limit=512M",
         "test": "phpunit --testsuite unit",
         "test:integration": "phpunit --testsuite integration",
+        "mutation": "infection --threads=max --no-progress --show-mutations=10",
         "qa": [
             "@cs",
             "@stan",

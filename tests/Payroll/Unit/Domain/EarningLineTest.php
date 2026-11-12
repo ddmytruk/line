@@ -212,6 +212,15 @@ final class EarningLineTest extends TestCase
         $line->addManualAdjustment(Money::fromDecimal('5', Currency::EUR), new AdjustmentComment('Wrong currency'), new SpecialistId('anna'), Lines::at());
     }
 
+    public function testAZeroAdjustmentInAnotherCurrencyIsRejectedForItsCurrency(): void
+    {
+        $line = Lines::calculated('1050.00');
+
+        $this->expectException(CurrencyMismatch::class);
+
+        $line->addManualAdjustment(Money::fromDecimal('0', Currency::EUR), new AdjustmentComment('Wrong currency'), new SpecialistId('anna'), Lines::at());
+    }
+
     public function testRejectsARecalculationInAnotherCurrency(): void
     {
         $line = Lines::calculated('1050.00');

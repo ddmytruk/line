@@ -1,0 +1,20 @@
+{
+    // Mutation testing of the core: how many deliberate small changes of src/ the tests that need no database catch.
+    "$schema": "vendor/infection/infection/resources/schema.json",
+    "source": {
+        "directories": ["src"]
+    },
+    "testFrameworkOptions": "--testsuite=unit",
+    "timeout": 30,
+    // Release 1.2.0: 233 of 238 mutants killed (97.90 %), every line covered. The five that survive change nothing a
+    // test could see; they are listed in docs/architecture.md. One more survivor (97.48 %) is below the gate.
+    "minMsi": 97.8,
+    "minCoveredMsi": 97.8,
+    "logs": {
+        "text": "build/infection/infection.log",
+        "summary": "build/infection/summary.log"
+    },
+    "mutators": {
+        "@default": true
+    }
+}

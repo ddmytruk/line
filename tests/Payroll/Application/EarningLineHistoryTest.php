@@ -16,6 +16,7 @@ use Payroll\Domain\Event\SystemValueRecalculated;
 use Payroll\Domain\Exception\ZeroAdjustment;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use Tests\Support\Common\SomethingHappened;
 use Tests\Support\Payroll\InMemoryPayroll;
 use Tests\Support\Payroll\Lines;
 
@@ -150,6 +151,16 @@ final class EarningLineHistoryTest extends TestCase
         $this->adjust('-45.55');
 
         self::assertEquals($before, $this->payroll->history($other));
+    }
+
+    public function testIgnoresEventsOfOtherModules(): void
+    {
+        $this->calculate('1000.00');
+        $before = $this->payroll->history();
+
+        $this->payroll->projector->project(new SomethingHappened(Lines::LINE_ID, 'not a payroll fact'));
+
+        self::assertEquals($before, $this->payroll->history());
     }
 
     public function testARebuildForgetsHistoriesThatNoStoredEventsSupport(): void

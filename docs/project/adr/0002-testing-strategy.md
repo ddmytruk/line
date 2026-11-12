@@ -16,7 +16,7 @@ The value of the code is in its business rules. A broken rule is the failure tha
 - Property-based tests use a small generator in `tests/Support` with a fixed seed, printed on failure, instead of a library.
 - Tests run in random order to catch hidden coupling between them.
 - When the code gets ports and adapters, every implementation of a port runs the same contract tests, and adapters are tested against the real technology they wrap.
-- There is no line-coverage target. Coverage shows what is not tested, not what is tested well; the reviews of this repository check assertion strength with deliberate mutations of the code.
+- There is no line-coverage target. Coverage shows what is not tested, not what is tested well; the reviews of this repository check assertion strength with deliberate mutations of the code, and from release 1.2.0 Infection mutates the core on every CI run with a minimum score.
 - PHPStan runs at the maximum level with strict rules, so type errors are caught before tests run.
 
 ## Rejected alternatives

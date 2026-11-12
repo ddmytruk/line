@@ -76,5 +76,14 @@ A folder is named after what its classes do, not after the pattern they follow, 
 | Every exception in `src/` lives in the `Exception/` folder of its layer | phpat, inside PHPStan | `make stan` |
 | Tests that need no database, in random order | PHPUnit | `make test` |
 | Tests of the Laravel adapters against MySQL | PHPUnit, suite `integration` | `make test-integration` |
+| Tests of the core catch deliberate small changes of `src/` (at least 97.8 % of them) | Infection, with pcov | `make mutation` |
 
 `make qa` runs all of them except the tests against MySQL in the Docker image; `make test-integration` starts MySQL in Docker Compose and runs those. CI runs the same checks on every push and pull request with the same PHP version, the tests against MySQL in a separate job, and also builds the image. The testing approach is described in [ADR 0002](project/adr/0002-testing-strategy.md).
+
+Mutation testing changes `src/` one small step at a time and runs the tests that need no database against each change; a change that no test notices has survived. At release 1.2.0, 233 of 238 changes are caught, so one more change that survives fails the check. The five that survive change nothing a test could observe:
+
+| Where | Change | Why nothing changes |
+|---|---|---|
+| `EarningLine::recordSystemValue`, `addManualAdjustment` | the currency check of a recalculation, or the check that the sum of an adjustment stays in range, is removed | `apply()` repeats the same checks before anything is recorded, so the same exception is thrown and nothing is recorded |
+| `EarningLines::save` | a failed line is marked with `false` instead of `true` | the mark is read with `isset`, which ignores the value |
+| `Money::fromDecimal` | either of the two `(int)` casts of a digit string is removed | PHP multiplies and adds numeric strings as integers |

@@ -5,7 +5,7 @@ export GID := $(shell id -g)
 COMPOSE := docker compose -f docker/compose.yaml
 RUN     := $(COMPOSE) run --rm app
 
-.PHONY: help build install qa test test-integration stan cs cs-fix demo artisan shell down
+.PHONY: help build install qa test test-integration mutation stan cs cs-fix demo artisan serve shell down
 
 help:              ## List the commands
 	@grep -E '^[a-z-]+:.*##' $(MAKEFILE_LIST) | sed 's/:.*##/ -/'
@@ -26,6 +26,9 @@ test-integration:  ## Tests of the Laravel adapters against MySQL
 	$(COMPOSE) up -d --wait mysql
 	$(RUN) composer test:integration
 
+mutation:          ## Mutation testing of the core; the report is written to build/infection
+	$(RUN) composer mutation
+
 stan:              ## Static analysis only
 	$(RUN) composer stan
 
@@ -41,6 +44,12 @@ demo:              ## Play the reference scenario through the command bus and pr
 artisan:           ## Run an artisan command against MySQL: make artisan cmd="about"
 	$(COMPOSE) up -d --wait mysql
 	$(RUN) php app/artisan $(cmd)
+
+PORT ?= 8000
+
+serve:             ## Serve the HTTP API on localhost:8000; another port: make serve PORT=8080
+	$(COMPOSE) up -d --wait mysql
+	$(COMPOSE) run --rm -p $(PORT):8000 app php app/artisan serve --host=0.0.0.0 --port=8000
 
 shell:             ## Shell inside the container
 	$(RUN) bash
