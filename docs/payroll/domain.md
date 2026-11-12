@@ -67,6 +67,8 @@ The scenario the implementation is checked against, step by step. Amounts are in
 | 7 | Adjustment #4 | −0.20 | 1,104.25 |
 | 8 | Adjustment #5 compensates #4, which was a mistake | +0.20 | 1,104.45 |
 
+`ReferenceScenarioTest` checks every step, with several values for step 4, the final history and the full log.
+
 The history shown to the specialist: frozen system value 1,050.00, adjustments −45.55, +100.10, −0.10, −0.20, +0.20, current value 1,104.45. The full log additionally keeps the first value 1,000.00 and the ignored recalculation of step 4.
 
 ## Edge cases

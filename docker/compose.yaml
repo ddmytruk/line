@@ -9,5 +9,8 @@ services:
     user: "${UID:-1000}:${GID:-1000}"
     environment:
       COMPOSER_HOME: /tmp/composer
+      # Replay a failed property-based run: PROPERTY_SEED=<seed> PROPERTY_RUNS=1 make test
+      PROPERTY_SEED: ${PROPERTY_SEED:-}
+      PROPERTY_RUNS: ${PROPERTY_RUNS:-}
     volumes:
       - ..:/app

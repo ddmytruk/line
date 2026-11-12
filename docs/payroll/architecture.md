@@ -90,6 +90,7 @@ What can go wrong, what prevents it and which test proves it. Rows are added in 
 | A rejected action leaves a partial trace | rules are checked before an event is recorded | `EarningLineTest::testRejectsAZeroAdjustmentWithoutATrace` |
 | A corrupted history yields a line with different money | replay checks the rules and throws | `EarningLineReplayTest::testRefusesACorruptedHistory` |
 | A rebuilt line behaves differently from the original | state changes only in `apply()`, which also replays ([ADR 0005](../common/adr/0005-state-changes-through-events.md)) | `EarningLineReplayTest::testARebuiltLineContinuesWhereTheOriginalStopped` |
+| A rule holds for the chosen examples but not in general | invariants checked on hundreds of random sequences against a naive model: current = system + Σ adjustments, freeze, numbering, only changes recorded, replay equality | `EarningLinePropertiesTest` (replay a failure with `PROPERTY_SEED`) |
 | An adjustment is saved without a real explanation | `AdjustmentComment` rejects blank and whitespace-only comments | `AdjustmentCommentTest` |
 
 ## 4. Rules for the code

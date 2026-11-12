@@ -13,3 +13,4 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - `Money` in integer minor units with `Currency` (ADR 0003), `AdjustmentComment`, `EarningLineId` and `SpecialistId` (ADR 0004).
 - `AggregateRoot` whose state changes only through events (ADR 0005).
 - `EarningLine` aggregate: calculation, recalculation, manual adjustments, freezing and recorded ignored recalculations (ADR 0006).
+- The reference scenario as an executable specification, and property-based tests of the line's invariants on random, reproducible sequences of actions.
