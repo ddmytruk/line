@@ -115,7 +115,7 @@ The history is read through a query: `GetEarningLineHistory` names the line, and
 | adjustments | number, signed amount, comment and author |
 | drift | latest calculated value minus the frozen system value, and the drift of each ignored recalculation; zero for an open line ([ADR 0011](adr/0011-drift-in-the-history.md)) |
 
-The version is what a specialist sends back with `AddManualAdjustment`. In the reference scenario, if the calculation sends 1,100.00 in step 4, the history ends at 1,104.45 with a drift of +50.00.
+The version is what a specialist sends back with `AddManualAdjustment`. `bin/earning-line demo` wires the module with in-memory adapters (`App\Modules\Payroll\InMemory\InMemoryPayrollModule`), sends the reference scenario as commands, reads this history through `GetEarningLineHistory` and prints it. In the reference scenario, if the calculation sends 1,100.00 in step 4, the history ends at 1,104.45 with a drift of +50.00.
 
 ## 6. Guarantees
 

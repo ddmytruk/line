@@ -26,7 +26,7 @@ Each step below is one commit: code, tests, the ADR of a decision taken in that 
 - [x] **6. Event store and repository.** `EventStore` port with optimistic concurrency, in-memory adapter with contract tests, `EarningLines` repository; one folder layout for every layer. ADR 0007, ADR 0008.
 - [x] **7. Commands and the command bus.** Commands with ids, handlers, one bus with a transaction and idempotency; the reference scenario through the bus. ADR 0009.
 - [x] **8. History read model.** The line history with drift, built by a synchronous projector, rebuilt from the events and read through a query. ADR 0010, ADR 0011.
-- [ ] **9. Command-line demo through the bus.** The demo writes through the bus and reads the history model; README for the release. Tag `v1.1.0`.
+- [x] **9. Command-line demo through the bus.** The demo writes through the bus and reads the history model; README for the release. Tag `v1.1.0`.
 
 ## Out of scope of 1.1.0
 

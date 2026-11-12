@@ -19,12 +19,15 @@ flowchart TB
     end
     subgraph app["app/Modules (adapters)"]
         cli["Payroll/Cli<br/>command-line demo"]
+        pmod["Payroll/InMemory<br/>module wiring, line histories"]
         mem["Common/InMemory<br/>in-memory stores, transaction"]
-        pmem["Payroll/InMemory<br/>in-memory line histories"]
     end
+    cli --> pmod
+    cli --> pa
     cli --> pd
     mem --> ca
-    pmem --> pa
+    pmod --> pa
+    pmod --> mem
     pa --> pd
     pa --> ca
     pd --> cd

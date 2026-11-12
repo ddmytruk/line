@@ -15,6 +15,7 @@ A review is added in the commit of the step it reviews, together with its row he
 | 6 | [Event store and repository](common/reviews/06-event-store.md) | common | 9 | 9 | 0 | 0 |
 | 7 | [Commands and the command bus](payroll/reviews/07-commands-and-bus.md) | payroll | 12 | 12 | 0 | 0 |
 | 8 | [History read model](payroll/reviews/08-line-history.md) | payroll | 15 | 14 | 0 | 1 |
+| 9 | [Command-line demo through the bus and release 1.1.0](payroll/reviews/09-command-line-demo-through-the-bus.md) | payroll | 6 | 6 | 0 | 0 |
 
 ## What the AI got wrong and how it was caught
 
@@ -31,3 +32,4 @@ What the reviews caught that the implementing agent got wrong: one case per step
 | 6 | `EarningLines::save` | The repository released the line's events before appending them | After a conflict, saving the same line object again appended nothing and reported success, so a specialist's adjustment was lost without an error | [Review of step 6](common/reviews/06-event-store.md): a throwaway script repeated a failed save | A line whose save failed cannot be saved again; it has to be loaded anew |
 | 7 | `CommandBusTest` | A race test in which the other run recorded the same content only | A bus that swallowed a lost race reported "done" to a sender whose command was never carried out, and every test stayed green | [Review of step 7](payroll/reviews/07-commands-and-bus.md): a mutation of the bus survived | A racing run with other content must end in `CommandIdReused` |
 | 8 | `InMemoryEventStore::restore` | Rollback of the list of all events was never checked | Events dropped by a failed command could come back in a rebuild as facts that never happened | [Review of step 8](payroll/reviews/08-line-history.md): a mutation that restored only the streams survived | The transaction test checks `all()` after a failure |
+| 9 | `DemoCommand` | The demo compared the history before and after a rebuild in the same store | A rebuild that did nothing would still be printed as "equal", so the demo claimed something it never showed | [Review of step 9](payroll/reviews/09-command-line-demo-through-the-bus.md) | The demo drops the history before rebuilding it |

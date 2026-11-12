@@ -5,6 +5,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-11-12
+
 ### Added
 - `EventStore` port with optimistic concurrency, an in-memory event store and contract tests that every store runs (ADR 0007, ADR 0008).
 - `EarningLines` repository: loads a line by replaying its events and saves what it recorded; a stored history that breaks the rules is reported as corrupted.
@@ -13,6 +15,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - Payroll commands `RecordCalculatedValue` (creates or recalculates a line) and `AddManualAdjustment` (refused if the line changed since the specialist saw it), with their handlers; the reference scenario runs through the bus.
 - Projectors: every appended event is projected in the same transaction, and `ReadModelRebuild` builds the models for reading again from all events (ADR 0010). `EventStore::all()` lists the events of all streams in the order of appending.
 - Line history for reading: current value, every fact with the value after it, adjustments with author and comment, and drift of a frozen line (ADR 0011), read through the `GetEarningLineHistory` query. In-memory store of histories with contract tests.
+
+### Changed
+- The command-line demo sends the reference scenario as commands through the bus and prints the history from the model for reading, with drift. It also shows a repeated command, an adjustment of an outdated version and a rebuild of the history.
 
 ## [1.0.0] - 2026-11-12
 

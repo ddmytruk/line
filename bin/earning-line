@@ -22,7 +22,7 @@ fwrite($command === 'help' ? STDOUT : STDERR, <<<'USAGE'
     Usage: bin/earning-line <command>
 
     Commands:
-      demo   Play the reference scenario and print the history of the line
+      demo   Play the reference scenario through the command bus and print the history of the line
 
     USAGE);
 exit($command === 'help' ? 0 : 1);

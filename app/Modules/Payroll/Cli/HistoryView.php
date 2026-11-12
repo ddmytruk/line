@@ -4,49 +4,48 @@ declare(strict_types=1);
 
 namespace App\Modules\Payroll\Cli;
 
-use Common\Domain\DomainEvent;
-use Payroll\Domain\EarningLine;
-use Payroll\Domain\Event\ManualAdjustmentAdded;
-use Payroll\Domain\Event\SystemRecalculationIgnored;
-use Payroll\Domain\Event\SystemValueCalculated;
-use Payroll\Domain\Event\SystemValueRecalculated;
+use Payroll\Application\History\EarningLineHistory;
+use Payroll\Application\History\HistoryEntry;
+use Payroll\Application\History\HistoryEntryKind;
 
-/** Renders a line as text: the history a specialist reads, and the full log of recorded facts. */
+/** Renders the history of a line as text: the table a specialist reads, and the full log of recorded facts. */
 final class HistoryView
 {
-    /** Frozen (or latest) system value, every adjustment, current value. */
-    public static function history(EarningLine $line): string
+    /** Frozen (or latest) system value, every adjustment, current value, and the drift of a frozen line. */
+    public static function history(EarningLineHistory $line): string
     {
-        $rows = [[$line->isFrozen() ? 'System value (frozen)' : 'System value', MoneyFormat::amount($line->systemValue()), '']];
+        $rows = [[$line->frozen ? 'System value (frozen)' : 'System value', MoneyFormat::amount($line->systemValue), '']];
 
         foreach ($line->adjustments() as $adjustment) {
-            $rows[] = ['Adjustment ' . $adjustment->number, MoneyFormat::signed($adjustment->amount), $adjustment->comment->value];
+            $rows[] = ['Adjustment ' . $adjustment->adjustmentNumber, MoneyFormat::signed($adjustment->amount), (string) $adjustment->comment];
         }
 
-        $rows[] = ['Current value', MoneyFormat::amount($line->currentValue()), ''];
+        $rows[] = ['Current value', MoneyFormat::amount($line->currentValue), ''];
+
+        if ($line->frozen) {
+            $rows[] = ['Drift', MoneyFormat::signed($line->drift()), 'latest calculation ' . MoneyFormat::amount($line->lastCalculatedValue) . ', not applied'];
+        }
 
         return self::table(['Entry', 'Value', 'Comment'], $rows);
     }
 
-    /** @param list<DomainEvent> $events */
-    public static function log(array $events): string
+    /** Every recorded fact in order, with the value of the line after it. */
+    public static function log(EarningLineHistory $line): string
     {
-        $rows = array_map(static fn(DomainEvent $event): array => [
-            $event->occurredAt()->format('Y-m-d H:i:s'),
-            ...match (true) {
-                $event instanceof SystemValueCalculated => ['Calculated', MoneyFormat::amount($event->value), ''],
-                $event instanceof SystemValueRecalculated => ['Recalculated', MoneyFormat::amount($event->value), ''],
-                $event instanceof SystemRecalculationIgnored => ['Recalculation ignored (line frozen)', MoneyFormat::amount($event->calculatedValue), ''],
-                $event instanceof ManualAdjustmentAdded => [
-                    \sprintf('Adjustment %d by %s', $event->number, $event->specialistId->value),
-                    MoneyFormat::signed($event->amount),
-                    $event->comment->value,
-                ],
-                default => [$event::class, '', ''],
+        $rows = array_map(static fn(HistoryEntry $entry): array => [
+            $entry->at->format('Y-m-d H:i:s'),
+            match ($entry->kind) {
+                HistoryEntryKind::Calculated => 'Calculated',
+                HistoryEntryKind::Recalculated => 'Recalculated',
+                HistoryEntryKind::RecalculationIgnored => \sprintf('Recalculation ignored, drift %s', MoneyFormat::signed($entry->drift ?? throw new \LogicException('An ignored recalculation has no drift.'))),
+                HistoryEntryKind::Adjusted => \sprintf('Adjustment %d by %s', $entry->adjustmentNumber, $entry->specialistId),
             },
-        ], $events);
+            $entry->kind === HistoryEntryKind::Adjusted ? MoneyFormat::signed($entry->amount) : MoneyFormat::amount($entry->amount),
+            MoneyFormat::amount($entry->currentValueAfter),
+            (string) $entry->comment,
+        ], $line->entries);
 
-        return self::table(['Time (UTC)', 'Fact', 'Value', 'Comment'], $rows);
+        return self::table(['Time (UTC)', 'Fact', 'Value', 'Line after', 'Comment'], $rows);
     }
 
     /**

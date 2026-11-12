@@ -31,7 +31,7 @@ cs:                ## Check coding style
 cs-fix:            ## Fix coding style
 	$(RUN) composer cs:fix
 
-demo:              ## Play the reference scenario and print the history
+demo:              ## Play the reference scenario through the command bus and print the history
 	$(RUN) php bin/earning-line demo
 
 shell:             ## Shell inside the container

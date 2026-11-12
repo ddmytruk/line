@@ -4,21 +4,30 @@ declare(strict_types=1);
 
 namespace Tests\Payroll\Cli;
 
+use App\Modules\Payroll\Cli\DemoClock;
 use App\Modules\Payroll\Cli\DemoCommand;
 use App\Modules\Payroll\Cli\HistoryView;
 use App\Modules\Payroll\Cli\MoneyFormat;
+use App\Modules\Payroll\InMemory\InMemoryPayrollModule;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(DemoCommand::class)]
+#[CoversClass(DemoClock::class)]
 #[CoversClass(HistoryView::class)]
 #[CoversClass(MoneyFormat::class)]
+#[CoversClass(InMemoryPayrollModule::class)]
 final class DemoCommandTest extends TestCase
 {
-    public function testPrintsTheHistoryOfTheReferenceScenario(): void
-    {
-        $output = new DemoCommand(new \DateTimeImmutable('2026-01-15 09:00:00', new \DateTimeZone('UTC')))->run();
+    private string $output;
 
+    protected function setUp(): void
+    {
+        $this->output = new DemoCommand(new \DateTimeImmutable('2026-01-15 09:00:00', new \DateTimeZone('UTC')))->run();
+    }
+
+    public function testPrintsTheHistoryOfTheReferenceScenarioWithItsDrift(): void
+    {
         self::assertStringContainsString(<<<'TEXT'
             History
             Entry                  Value      Comment
@@ -30,15 +39,24 @@ final class DemoCommandTest extends TestCase
             Adjustment 4           -$0.20     Rounding, second pass
             Adjustment 5           +$0.20     Reverts adjustment #4, entered by mistake
             Current value          $1,104.45
-            TEXT, $output);
+            Drift                  +$50.00    latest calculation $1,100.00, not applied
+            TEXT, $this->output);
     }
 
-    public function testTheFullLogKeepsTheFirstValueAndTheIgnoredRecalculation(): void
+    public function testTheFullLogKeepsEveryFactWithTheValueAfterIt(): void
     {
-        $output = new DemoCommand(new \DateTimeImmutable('2026-01-15 09:00:00', new \DateTimeZone('UTC')))->run();
+        self::assertStringContainsString('2026-01-15 09:00:00  Calculated                            $1,000.00  $1,000.00', $this->output);
+        self::assertStringContainsString('2026-01-15 12:00:00  Recalculation ignored, drift +$50.00  $1,100.00  $1,004.45', $this->output);
+        self::assertStringContainsString('4. Recalculated $1,100.00 (ignored: the line is frozen) -> current value $1,004.45', $this->output);
+    }
 
-        self::assertStringContainsString('2026-01-15 09:00:00  Calculated                           $1,000.00', $output);
-        self::assertStringContainsString('2026-01-15 12:00:00  Recalculation ignored (line frozen)  $1,100.00', $output);
-        self::assertStringContainsString('4. Recalculated $1,100.00 (ignored: the line is frozen) -> current value $1,004.45', $output);
+    public function testShowsWhatTheCommandBusProtectsAgainst(): void
+    {
+        self::assertStringContainsString(<<<'TEXT'
+            Protection
+            - Step 5 sent again under the same command id: nothing changed, the line stays at version 8.
+            - A second specialist who still saw version 7 adjusts the line: refused, the line changed since.
+            - The history is dropped and rebuilt from all stored events: it equals the one built along the way.
+            TEXT, $this->output);
     }
 }
